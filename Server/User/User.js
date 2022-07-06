@@ -23,7 +23,12 @@ router.post('/register', async(req,res)=>{
         res.status(400).send("all data must be filled")
       }
       console.log("past if no.1")
-      let olderUser= await User.findOne(req.body)
+      const olderUser= await User.findOne({ 
+        email:req.body.email,
+        password:bcrypt.hash(req.body.password,10),
+        full_name:req.body.full_name,
+        number:req.body.number
+       });
       if(olderUser!=null || olderUser!=undefined)
       {
        console.log("in if 2")
@@ -40,6 +45,7 @@ router.post('/register', async(req,res)=>{
       res.status(200).send("user registered")
     }
     catch(e){
+      
       console.log("an error occured")
       res.status(500).send("internal server error")
     }
