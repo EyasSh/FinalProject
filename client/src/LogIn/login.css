@@ -1,0 +1,76 @@
+input[type="text"],
+input[type="password"] {
+  width: 25%;
+  padding: 12px 20px;
+  margin:8px 0 ;
+  height: 15px;
+  display: inline-block;
+  border: 1px solid transparent;
+  box-sizing: border-box;
+  background-color:rgba(255, 255, 255,0.9) ;
+  color: rgb(155, 75, 229) ;
+}
+::placeholder{
+  color: rgb(155, 75, 229) ;
+  opacity: 90%;
+}
+label{
+  color: white;
+}
+.ant-input:focus
+{
+  outline: none !important;
+  caret-color: rgb(155, 75, 229) ;
+  color: rgb(155, 75, 229) ;
+  background-color: white;
+}
+.Li-Container
+{
+  align-self: center;
+  margin-left: 35vw ;
+  margin-top: 15%;
+}
+.Li-button {
+  background-color: #ffffff;
+  color: rgb(155, 75, 229);
+  height: 3vh;
+  margin-left:3vw ;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+  width: 8vw;
+  transition:background-color 0.3s ease-out;
+}
+
+.Li-button:hover {
+  background-color:rgb(155, 75, 229) ;
+  color: white;
+}
+.Li-Container {
+  padding: 16px;
+}
+
+label.psw {
+  padding-top: 16px;
+}
+
+.SignUp
+{
+  color:rgb(255, 255, 255);
+}
+.SignUp:hover
+{
+  cursor: pointer;
+}
+.Icons-User{
+  background-color: white;
+  color:  rgb(155, 75, 229) ; 
+  padding-top: 3px;
+  padding-bottom: 7px;
+}
+.Icon-Password{
+  background-color: white;
+  height: 3px;
+  cursor: pointer;
+}
+

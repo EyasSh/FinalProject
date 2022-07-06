@@ -1,0 +1,24 @@
+.user-container{
+    background-color: transparent;
+    background-repeat: repeat;
+    background-size: cover;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+}
+.demo-prof-pic{
+    margin-top: 0.5vh;
+    background-color: grey;
+    border: none;
+    border-radius:50%;
+    height: 10vh;
+    width: 10vh;
+    margin-left: 47%;
+    transform: translate(center,center);
+}
+p{
+    color: white;
+    margin-left: 47%;
+    transform: translate(center,center);
+
+}
