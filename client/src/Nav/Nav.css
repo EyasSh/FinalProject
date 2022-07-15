@@ -1,0 +1,15 @@
+
+input[type='text']{
+    transform: translate(140%,30%);
+}
+.Nav-Container{
+    background-color: #340658;
+    height: 125%;
+    margin-bottom:#340658,200% ;
+  }
+.Op-Container{
+    color: white;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
