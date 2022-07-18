@@ -6,7 +6,7 @@ function Nav(props) {
     
     return (
         <div className='Nav-Container'>
-            <input placeholder="Search..." type={"text"} className="UserData" 
+            <input placeholder="Search..." type={"text"} className="Search" 
                 ></input>
              
             

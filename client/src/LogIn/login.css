@@ -1,15 +1,15 @@
-input[type="text"],
-input[type="password"] {
+.Email input,
+.Password input {
   width: 25%;
-  padding: 12px 20px;
-  margin:8px 0 ;
-  height: 15px;
+  margin-bottom: 2%;
   display: inline-block;
-  border: 1px solid transparent;
-  box-sizing: border-box;
-  background-color:rgba(255, 255, 255,0.9) ;
+  border: none;
+  outline: none;
+  padding: 5px 5px;
+  
   color: rgb(155, 75, 229) ;
 }
+
 ::placeholder{
   color: rgb(155, 75, 229) ;
   opacity: 90%;
@@ -17,13 +17,7 @@ input[type="password"] {
 label{
   color: white;
 }
-.ant-input:focus
-{
-  outline: none !important;
-  caret-color: rgb(155, 75, 229) ;
-  color: rgb(155, 75, 229) ;
-  background-color: white;
-}
+
 .Li-Container
 {
   align-self: center;
@@ -62,15 +56,13 @@ label.psw {
 {
   cursor: pointer;
 }
-.Icons-User{
+.Icons-User {
+  display: none;
   background-color: white;
   color:  rgb(155, 75, 229) ; 
-  padding-top: 3px;
-  padding-bottom: 7px;
 }
-.Icon-Password{
-  background-color: white;
-  height: 3px;
-  cursor: pointer;
+
+.ant-input-password-icon svg{
+  fill: white
 }
 

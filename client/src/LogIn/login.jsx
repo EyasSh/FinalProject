@@ -11,7 +11,10 @@ function Login()
             <Form.Item label='Email/Phone' name={'username'}
             rules={[{required:true, message:'Email or Phone Number'}]}
             >
-                <Input placeholder="Email/Phone" prefix={<UserOutlined className="Icons-User"></UserOutlined>}/>
+                <Input 
+                className="Email"
+                placeholder="Email/Phone" 
+                prefix={<UserOutlined className="Icons-User"></UserOutlined>}/>
             </Form.Item>
             <Form.Item
                 label="Password"
@@ -23,7 +26,9 @@ function Login()
                 },
                     ]}
             >
-                <Input.Password placeholder="Password" 
+                <Input.Password 
+                className="Password"
+                placeholder="Password" 
                 iconRender={visible => (visible ? <span className="Icon-Password"> <EyeTwoTone  /> </span>: 
                 <span className="Icon-Password"> <EyeInvisibleOutlined  /> </span> )}
                 />

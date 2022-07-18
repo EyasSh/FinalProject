@@ -35,44 +35,47 @@ function SignUp() {
     }
     return (
         <div className='SuContainer'>
-            <h1 className='SignUpHeader'><u>Sign Up</u></h1>
-            <label>
-                Full Name
-            </label>
-            <br></br>
-            <input placeholder="Full Name" type={"text"} className="UserData" 
-                onChange={(e)=>{
-                   setFullName(e.target.value); 
-                }}></input>
-            <br></br>
-            <label>
-                Phone
-            </label>
-            <br></br>
-            <input placeholder="Phone" type={"text"} className="UserData"
-             onChange={(e)=>{
-                SetNumber(e.target.value);
-             }}></input>
-            <br></br>
-            <label >Email</label>
-            <br></br>
-            <input type={"text"} placeholder="Email" className="UserData"
-                onChange={(e)=>{
-                   setEmail(e.target.value) 
-                }}
-             />
-            <br></br>
-            <label>Password</label>
-            <br></br>
-            <input type={"password"} placeholder="Password" className="UserData"
-                onChange={(e)=>{
-                    setPassword(e.target.value);
-                }} 
-                ></input>
             
-            <br></br>
-            <button className="Submit" 
-            onClick={handleSubmit} >submit</button>
+            <div className='signUpForm'>
+                <h1 className='SignUpHeader'><u>Sign Up</u></h1>
+                <label>
+                    Full Name
+                </label>
+                <br></br>
+                <input placeholder="Full Name" type={"text"} className="UserData" 
+                    onChange={(e)=>{
+                    setFullName(e.target.value); 
+                    }}></input>
+                <br></br>
+                <label>
+                    Phone
+                </label>
+                <br></br>
+                <input placeholder="Phone" type={"text"} className="UserData"
+                onChange={(e)=>{
+                    SetNumber(e.target.value);
+                }}></input>
+                <br></br>
+                <label >Email</label>
+                <br></br>
+                <input type={"text"} placeholder="Email" className="UserData"
+                    onChange={(e)=>{
+                    setEmail(e.target.value) 
+                    }}
+                />
+                <br></br>
+                <label>Password</label>
+                <br></br>
+                <input type={"password"} placeholder="Password" className="UserData"
+                    onChange={(e)=>{
+                        setPassword(e.target.value);
+                    }} 
+                    ></input>
+                
+                <br></br>
+                <button className="Submit" 
+                onClick={handleSubmit} >submit</button>
+            </div>
             
             
         </div>

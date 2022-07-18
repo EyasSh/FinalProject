@@ -1,6 +1,17 @@
 
-input[type='text']{
-    transform: translate(140%,30%);
+.Search{
+    transform: translate(45vw,30%);
+    outline: none;
+    border: none;
+    caret-color: rgb(155, 75, 229) ;
+    color:rgb(155, 75, 229) ;
+    width: 12vw;
+    
+
+}
+.Search:focus , .Search:hover{
+    outline: none;
+    border: none;
 }
 .Nav-Container{
     background-color: #340658;
