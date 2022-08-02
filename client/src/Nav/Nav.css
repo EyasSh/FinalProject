@@ -1,49 +1,32 @@
-
-.Search{
-    transform: translate(41vw,30%);
-    outline: none;
-    border: none;
-    caret-color: rgb(155, 75, 229) ;
-    color:rgb(155, 75, 229) ;
-    width: 15vw;
+:root{
+    --nav-color: rgb(101, 33, 165);
 }
-.Search:focus , .Search:hover{
-    outline: none;
-    border: none;
-}
-.Nav-Container{
-    background-color: #340658;
-    border-bottom-right-radius:10px ;
-    border-bottom-left-radius:10px ;
-    height: 7.5vh;
-  }
-.Op-Container{
-    color: white;
+.Nav-Container {
+    position: fixed;
     display: flex;
-    flex-direction: row;
-    justify-content: space-evenly;
+    left: 50%;
+    bottom: 0%;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    width: fit-content;
+    height: 9vh;
+    transform: translate(-50%);
+    background-color: var(--nav-color);
+    justify-content: space-between;
+    align-items: center;
+    overflow: hidden;
 }
-.Chat-Btn{
-    background-color: transparent;
+
+.navButton{
+    height: 100%;
+    padding: 10px;
+    width: auto;
+    font-size: 3em;
+    transition: all 200ms ease;
     color: white;
-    border:none;
-    font-family: 'Robotto' ,sans-serif;
-    font-weight: bold;
-    font-size: 1.09em;
-    height: 4.5vh;
-    transition: 0.11s ease-in;
 }
-.Chat-Btn:hover{
-    cursor: pointer;
-}
-.Chat-Btn:active{
+
+.navButton:hover, .active{
     background-color: white;
-    color:#340658 ;
-}
-.Chat-Btn:focus{
-    
-    border-top-left-radius:20% ;
-    border-top-right-radius:20% ;
-    background-color: white;
-    color:#340658 ;
+    color: var(--nav-color);
 }

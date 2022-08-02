@@ -8,8 +8,7 @@ body {
  
   min-height: 100vh;
   background-repeat:no-repeat ;
-  background-image: radial-gradient(blueviolet,
-    #210537);
+  background-color: blueviolet;
   overflow: hidden;
   
   

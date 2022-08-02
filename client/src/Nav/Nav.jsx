@@ -1,39 +1,31 @@
 import React, { useRef } from 'react';
 import './Nav.css'
-import { Link } from 'react-router-dom';
-
+import { Link, useLocation } from 'react-router-dom';
+import {MessageOutlined, ContactsOutlined, UserOutlined} from '@ant-design/icons';
 function Nav(props) {
    
     const  chatsRef=useRef();
-    
+    const location = useLocation()
+
     return (
         <div className='Nav-Container'>
-            <input placeholder="Search...
-            " type={"text"} 
-            className="Search"
-            
-            ></input>
-             
-            
-            <div className='Op-Container'>
-            
-            <Link to='/User/Home/Chats'>
-                <button 
-                ref={chatsRef}
-                className='Chat-Btn' 
-                >Chats</button>
+            <Link to="/user/home/chats">
+                <span className={"navButton " + (location.pathname == "/user/home/chats" ? "active" : "")} id='btnChats'>
+                    <MessageOutlined />
+                </span>
             </Link>
-            
 
-            <Link to='/User/Home/Contacts'> 
-                <button className='Contact-Btn'> Contacts</button>
+            <Link to="/user/home/contacts">
+                <span className={"navButton " + (location.pathname == "/user/home/contacts" ? "active" : "")} id='btnContacts'>
+                    <ContactsOutlined />
+                </span>
             </Link>
-            
-            </div>
-            
-            
 
-
+            <Link to="/user">
+                <span className={"navButton " + (location.pathname == "/user" ? "active" : "")} id="btnProfile">
+                    <UserOutlined />
+                </span>
+            </Link>
         </div>
     );
 }

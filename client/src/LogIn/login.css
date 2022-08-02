@@ -1,11 +1,11 @@
 .Email input,
 .Password input {
-  width: 25%;
   margin-bottom: 2%;
   display: inline-block;
   border: none;
   outline: none;
   padding: 5px 5px;
+  width: 100%;
   
   color: rgb(155, 75, 229) ;
 }
@@ -20,9 +20,10 @@ label{
 
 .Li-Container
 {
-  align-self: center;
-  margin-left: 35vw ;
-  margin-top: 15%;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 .Li-button {
   background-color: #ffffff;
@@ -45,7 +46,7 @@ label{
 }
 
 label.psw {
-  padding-top: 16px;
+  margin-top: 16px;
 }
 
 .SignUp
