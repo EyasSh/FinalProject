@@ -1,13 +1,11 @@
 
 .Search{
-    transform: translate(45vw,30%);
+    transform: translate(41vw,30%);
     outline: none;
     border: none;
     caret-color: rgb(155, 75, 229) ;
     color:rgb(155, 75, 229) ;
-    width: 12vw;
-    
-
+    width: 15vw;
 }
 .Search:focus , .Search:hover{
     outline: none;
@@ -15,12 +13,37 @@
 }
 .Nav-Container{
     background-color: #340658;
-    height: 125%;
-    margin-bottom:#340658,200% ;
+    border-bottom-right-radius:10px ;
+    border-bottom-left-radius:10px ;
+    height: 7.5vh;
   }
 .Op-Container{
     color: white;
     display: flex;
     flex-direction: row;
     justify-content: space-evenly;
+}
+.Chat-Btn{
+    background-color: transparent;
+    color: white;
+    border:none;
+    font-family: 'Robotto' ,sans-serif;
+    font-weight: bold;
+    font-size: 1.09em;
+    height: 4.5vh;
+    transition: 0.11s ease-in;
+}
+.Chat-Btn:hover{
+    cursor: pointer;
+}
+.Chat-Btn:active{
+    background-color: white;
+    color:#340658 ;
+}
+.Chat-Btn:focus{
+    
+    border-top-left-radius:20% ;
+    border-top-right-radius:20% ;
+    background-color: white;
+    color:#340658 ;
 }

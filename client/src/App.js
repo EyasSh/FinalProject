@@ -13,7 +13,15 @@ function App() {
           <Route exact path="/" element={<Login />}></Route>
           <Route exact path="/Signup" element={<SignUp />}></Route>
           <Route exact path='/User' element={<User />}></Route>
-          <Route exact path='/User/Home' element={<Home />}></Route>
+          <Route exact path='/User/Home' element={<Home />}>
+            <Route exact path='/User/Home/Chats' 
+              element={<h1>chats work</h1>}>
+            </Route>
+            <Route exact path='/User/Home/Contacts'
+              element={<h1>contacts work</h1>}>
+            </Route>
+          </Route>
+          
         </Routes>
       </Router>
     </div>
