@@ -1,32 +1,151 @@
-:root{
-    --nav-color: rgb(101, 33, 165);
+:root {
+    --chat-spacing: 10px
 }
-.Nav-Container {
-    position: fixed;
-    display: flex;
-    left: 50%;
-    bottom: 0%;
-    border-top-left-radius: 20px;
-    border-top-right-radius: 20px;
-    width: fit-content;
-    height: 9vh;
-    transform: translate(-50%);
-    background-color: var(--nav-color);
-    justify-content: space-between;
-    align-items: center;
-    overflow: hidden;
+*{
+    box-sizing: border-box;
+}
+.header {
+    border-bottom: 4px solid rgb(143, 143, 143);
+    padding-bottom: 20px;
+    transition: all 300ms ease;
 }
 
-.navButton{
+.hidden{
+    pointer-events: none;
+    transform: translateY(100%);
+    opacity: 0;
+}
+
+.profileBtn {
+    border-radius: 50%;
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    top: 20px;
+    left: 20px;
+    cursor: pointer;
+    transition: all 300ms ease;
+}
+
+.profileBtnOpen {
+    cursor: auto;
+    transform: scale(3, 3) translate(50%, 60%);
+}
+
+.Nav {
+    position: absolute;
+    left: 0%;
     height: 100%;
-    padding: 10px;
-    width: auto;
-    font-size: 3em;
-    transition: all 200ms ease;
-    color: white;
+    width: 30%;
+    background-color: white;
+    box-shadow: 0px 0px 26px 0px #000000;
+    z-index: 100;
 }
 
-.navButton:hover, .active{
-    background-color: white;
-    color: var(--nav-color);
+.chatsTitle {
+    color: black;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.searchIcon {
+    color: black;
+    font-size: 30px;
+    margin-left: 20px;
+    margin-right: 10px;
+}
+
+.searchInput {
+    font-size: 20px;
+    padding: 2px;
+    background-color: transparent;
+    border: none;
+    outline: none;
+    border-bottom: grey 1px solid;
+    color: black;
+    transition: border 200ms ease;
+}
+
+.searchInput:focus, .searchInput:hover {
+    border-bottom: black 3px solid;
+}
+
+.chatsWrapper {
+    width: 100%;
+    overflow: hidden;
+    transition: all 300ms ease;
+}
+
+.chat {
+    position: relative;
+    width: 100%;
+    height: 70px;
+    padding: var(--chat-spacing);
+    color: black;
+    border-bottom: 1px rgb(143, 143, 143) solid;
+    transition: background 200ms ease;
+}
+
+.chat:hover {
+    background-color: #ccc;
+    cursor: pointer;
+}
+
+.chat .profilePic {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.chat .contactName {
+    position: absolute;
+    top: var(--chat-spacing);
+    margin-left: var(--chat-spacing);
+    font-size: 20px;
+}
+
+.chat .date {
+    position: absolute;
+    top: var(--chat-spacing);
+    right: var(--chat-spacing);
+    font-size: 15px;
+    color: #626262;
+}
+
+.chat .lastMessage {
+    position: absolute;
+    bottom: var(--chat-spacing);
+    margin-left: var(--chat-spacing);
+    color: #626262;
+}
+
+.profileBackButton{
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    color: black;
+    font-size: 25px;
+    cursor: pointer;
+    transition: all 300ms ease;
+}
+
+.hiddenLeft {
+    pointer-events: none;
+    transform: translateX(-300%);
+    opacity: 0;
+}
+
+.profileInfo {
+    position: absolute;
+    display: flex;
+    color: black;
+    flex-direction: column;
+    left: 40%;
+    transition: all 300ms ease;
+}
+
+.profileInfo span {
+    margin-bottom: 5px;
 }

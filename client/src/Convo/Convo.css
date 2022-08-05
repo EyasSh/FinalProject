@@ -1,0 +1,94 @@
+.convoSection{
+    position: absolute;
+    right: 0%;
+    height: 100%;
+    width: 70%;
+    background-color: white;
+}
+
+.convoHeader {
+    position: relative;
+    display: flex;
+    width: 100%;
+    height: 70px;
+    overflow: hidden;
+    background-color: rgb(225, 225, 225);
+    box-shadow: 0px 26px 26px -26px #000000;
+    z-index: 100;
+    align-items: center;
+}
+
+.convoPicture{
+    margin-left: 30px;
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.convoHeader span {
+    font-size: 30px;
+    font-weight: bold;
+}
+
+.convoName{
+    margin-left: 20px;
+}
+
+.convoHeaderBtns{
+    position: absolute;
+    display: flex;
+    right: 0%;
+    margin-right: 30px;
+    width: 100px;
+    color: blue;
+    justify-content: space-between;
+}
+
+.convoHeaderBtns span{
+    cursor: pointer;
+}
+
+.bubblesWrapper{
+    width: 100%;
+    height: 100%;
+    background-color: blue;
+}
+
+.convoFooter {
+    position: absolute;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    bottom: 0%;
+    width: 100%;
+    background-color: rgb(225, 225, 225);
+    height: 60px;
+    font-size: 30px;
+    z-index: 100;
+}
+
+.msgInput{
+    width: 70%;
+    height: 50px;
+    border: none;
+    outline: none;
+    padding: 20px;
+    background-color: rgb(199, 199, 199);
+    border-radius: 50px;
+    font-size: 20px;
+    transition: all 200ms;
+}
+
+.msgInput:hover, .msgInput:focus{
+    border: 2px blue solid;
+}
+
+#shareFileBtn{
+    margin-left: 30px;
+}
+
+#sendVCBtn,
+#sendMsgBtn{
+    margin-right: 30px;
+}

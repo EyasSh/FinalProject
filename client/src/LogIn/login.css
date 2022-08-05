@@ -7,11 +7,11 @@
   padding: 5px 5px;
   width: 100%;
   
-  color: rgb(155, 75, 229) ;
+  color: black ;
 }
 
 ::placeholder{
-  color: rgb(155, 75, 229) ;
+  color: rgb(112, 112, 112) ;
   opacity: 90%;
 }
 label{
@@ -27,18 +27,18 @@ label{
 }
 .Li-button {
   background-color: #ffffff;
-  color: rgb(155, 75, 229);
+  color: black;
   height: 3vh;
   margin-left:3vw ;
   border: none;
   cursor: pointer;
   text-align: center;
   width: 8vw;
-  transition:background-color 0.3s ease-out;
+  transition:all 0.2s ease;
 }
 
 .Li-button:hover {
-  background-color:rgb(155, 75, 229) ;
+  background-color: black ;
   color: white;
 }
 .Li-Container {
@@ -60,7 +60,7 @@ label.psw {
 .Icons-User {
   display: none;
   background-color: white;
-  color:  rgb(155, 75, 229) ; 
+  color: black; 
 }
 
 .ant-input-password-icon svg{
