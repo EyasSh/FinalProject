@@ -119,6 +119,50 @@
     bottom: var(--chat-spacing);
     margin-left: var(--chat-spacing);
     color: #626262;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: 80%;
+}
+
+.createConvo {
+    position: absolute;
+    background-color: #248bf5;
+    color: white;
+    font-size: 50px;
+    width: 70px;
+    height: 70px;
+    text-align: center;
+    bottom: 10px;
+    right: 10px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 200ms ease;
+}
+
+.createConvo:hover {
+    background-color: #1a5ea1;
+}
+
+.createConvo::after{
+    pointer-events: none;
+    opacity: 0;
+    content: 'Create Conversation';
+    position: absolute;
+    top: -40%;
+    left: -50%;
+    width: fit-content;
+    height: 20px;
+    font-size: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    background-color: black;
+    padding: 3px;
+    transition: opacity 200ms ease;
+}
+
+.createConvo:hover::after {
+    opacity: 1;
 }
 
 .profileBackButton{
@@ -148,4 +192,5 @@
 
 .profileInfo span {
     margin-bottom: 5px;
+    user-select: text;
 }

@@ -1,29 +1,28 @@
 import React, { Component, useState } from 'react';
 import "./Nav.css"
-import {SearchOutlined, ArrowLeftOutlined} from '@ant-design/icons';
+import {SearchOutlined, ArrowLeftOutlined, CommentOutlined} from '@ant-design/icons';
 import { format } from 'timeago.js';
 
 export default function Nav(props) {
     const [searchFeild, setSearchFeild] = useState("")
+    const [convoModalOpen, setConvoModalOpen] = useState(false)
 
     const handlechange = e => {
         setSearchFeild(e.target.value)
     }
 
-    
-
-
+    // SAMPLE DATA
     const chatsJSX = []
     const chats = props.chats
     if (searchFeild.trim() === "") {
         for (let index = 0; index < chats.length; index++) {
             const chat = chats[index];
             chatsJSX.push(
-                <div className="chat">
+                <div className="chat" onClick={() => props.openConvo(chat.convoID)}>
                     <img src={chat.picture} alt="" className="profilePic" />
                     <span className='contactName'>{chat.name}</span>
                     <span className='date'>{format(chat.messages[chat.messages.length -1].createdAt)}</span>
-                    <span className='lastMessage'>{chat.messages[chat.messages.length -1].content}</span>
+                    <span className='lastMessage'>{(chat.messages[chat.messages.length -1].fromMe ? "You: " : "") + chat.messages[chat.messages.length -1].content}</span>
                 </div>
             )
         }
@@ -32,16 +31,16 @@ export default function Nav(props) {
             const chat = chats[index];
             if (!chat.name.toLowerCase().includes(searchFeild.toLowerCase())) continue;
             chatsJSX.push(
-                <div className="chat">
+                <div className="chat" onClick={() => props.openConvo(chat.convoID)}>
                     <img src={chat.picture} alt="" className="profilePic" />
                     <span className='contactName'>{chat.name}</span>
                     <span className='date'>{format(chat.messages[chat.messages.length -1].createdAt)}</span>
-                    <span className='lastMessage'>{chat.messages[chat.messages.length -1].content}</span>
+                    <span className='lastMessage'>{(chat.messages[chat.messages.length -1].fromMe ? "You: " : "") + chat.messages[chat.messages.length -1].content}</span>
                 </div>
             )
         }
     }
-
+    // END OF SAMPLE DATA
     const openProfile = e => toggleProfile(true)
     const closeProfile = e => toggleProfile(false)
 
@@ -66,6 +65,12 @@ export default function Nav(props) {
         }
     }
 
+    const convoModal = (
+        <div></div>
+    )
+    const toggleConvoModal = () => {
+        setConvoModalOpen(!convoModalOpen)
+    }
     return (
       <div className='Nav'>
         <img src="https://instadownloader.co/view_photo.php?url=https%3A//instagram.fsdv1-2.fna.fbcdn.net/v/t51.2885-15/292586271_583938633454985_2981626577624270745_n.webp%3Fstp%3Ddst-jpg_e35%26_nc_ht%3Dinstagram.fsdv1-2.fna.fbcdn.net%26_nc_cat%3D105%26_nc_ohc%3D2Heioy5npy4AX_Ik2Th%26edm%3DAABBvjUBAAAA%26ccb%3D7-5%26ig_cache_key%3DMjg3ODU0NDc3MzU5NDkxOTE0NQ%253D%253D.2-ccb7-5%26oh%3D00_AT9wYxwOyXsIQJYA0JOJ3tFQtMJl0VcLaYQ_0Q-vo3gTVw%26oe%3D62F2CEDB%26_nc_sid%3D83d603" alt="" className="profileBtn" onClick={openProfile} />
@@ -81,8 +86,10 @@ export default function Nav(props) {
 
         <div className="chatsWrapper">
             {chatsJSX}
+            <span className="createConvo" onClick={toggleConvoModal}><CommentOutlined /></span>
         </div>
 
+        {/* PROFILE */}
         <div className="profile">
             <span className="profileBackButton hiddenLeft" onClick={closeProfile}><ArrowLeftOutlined /></span>
             <div className="profileInfo hidden">
@@ -90,6 +97,9 @@ export default function Nav(props) {
                 <span className="profileId">ID: eyas_sharary</span>
             </div>
         </div>
+
+        {/* New Conversation Prompt */}
+        {convoModalOpen ? convoModal : ""}
       </div>
     );
 }

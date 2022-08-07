@@ -52,7 +52,7 @@
 .bubblesWrapper{
     width: 100%;
     height: 100%;
-    background-color: blue;
+    padding-bottom: 100px;
 }
 
 .convoFooter {
@@ -66,6 +66,12 @@
     height: 60px;
     font-size: 30px;
     z-index: 100;
+    opacity: 0.8;
+    transition: opacity 300ms ease;
+}
+
+.convoFooter:focus-within, .convoFooter:hover{
+    opacity: 1;
 }
 
 .msgInput{
