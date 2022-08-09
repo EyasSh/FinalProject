@@ -39,8 +39,6 @@
     height: 100%;
     width: 30%;
     background-color: white;
-    box-shadow: 0px 0px 26px 0px #000000;
-    z-index: 100;
 }
 
 .chatsTitle {
@@ -193,4 +191,102 @@
 .profileInfo span {
     margin-bottom: 5px;
     user-select: text;
+}
+
+.convoModalOverlay {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background-color: black;
+    opacity: 0.5;
+    z-index: 100;
+}
+
+.convoModal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    opacity: 1;
+    width: 500px;
+    height: 300px;
+    padding: 10px;
+    z-index: 100;
+    box-shadow: 0px 0px 26px 0px #000000;
+}
+
+.exitBtn {
+    position: absolute;
+    top: 0;
+    right: 20px;
+    cursor: pointer;
+    font-size: 20px;
+}
+
+.convoModalSearch {
+    margin-top: 20px;
+    font-size: 25px;
+}
+
+.convoModalSearchBar {
+    font-size: 20px;
+    width: 90%;
+    padding: 5px;
+    outline: none;
+    border: none;
+    border-bottom: 1px grey solid;
+    transition: border 200ms ease;
+}
+
+.convoModalSearchBar:hover,
+.convoModalSearchBar:focus {
+    border-bottom: 2px solid #1a5ea1;
+}
+
+.checkList {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-top: 30px;
+    font-size: 20px;
+}
+
+.contactCheckBox {
+    margin-right: 20px
+}
+
+.contactItemName {
+    margin-right: 5px;
+}
+
+.contactItemId {
+    font-size: 15px;
+    color: gray;
+}
+
+.submitCreateConvo{
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    font-size: 20px;
+    border: #248bf5 2px solid;
+    border-radius: 10px;
+    background-color: white;
+    transition: all 200ms ease;
+    cursor: pointer;
+}
+
+.submitCreateConvo:hover{
+    background-color: #248bf5;
+    color: white;
+}
+
+.submitCreateConvo:disabled {
+    pointer-events: none;
+    cursor: not-allowed;
 }
