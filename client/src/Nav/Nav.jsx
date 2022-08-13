@@ -72,7 +72,7 @@ export default function Nav(props) {
 
     //New conversation prompt functions
     const toggleConvoModal = (event) => {
-        event.stopPropagation();
+        
         setConvoModalOpen(!convoModalOpen)
         setCheckedContacts([])
     }
@@ -80,7 +80,8 @@ export default function Nav(props) {
     const getExistingConvos = () =>{
         const convosList = []
         chats.map(chat => {
-            if (chat.recipientId){ // This checks if the conversation is a group chat or a private chat
+            if (chat.recipientId){ 
+                // This checks if the conversation is a group chat or a private chat
                 // we only want private chats
                 //we also need to handle search bar
                 if (newConvoSearch.trim == ""){

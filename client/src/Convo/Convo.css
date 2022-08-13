@@ -16,6 +16,12 @@
     background-color: rgb(225, 225, 225);
     box-shadow: 0px 26px 26px -26px #000000;
     align-items: center;
+    transition: height 300ms ease;
+    z-index: 100;
+}
+
+.headerEnlarged {
+    height: 200px;
 }
 
 .convoPicture{
@@ -24,11 +30,21 @@
     height: 50px;
     object-fit: cover;
     border-radius: 50%;
+    transition: transform 300ms ease;
+}
+
+.picEnlarged {
+    transform: scale(2.5) translate(20%, 10%);
 }
 
 .convoHeader span {
     font-size: 30px;
     font-weight: bold;
+    transition: transform 300ms ease;
+}
+
+.profileTitle {
+    transform: translate(40%, -40%);
 }
 
 .convoName{
@@ -96,4 +112,20 @@
 #sendVCBtn,
 #sendMsgBtn{
     margin-right: 30px;
+}
+
+.noConvoSelected {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.noConvoSelected img {
+    max-width: 50%;
+}
+
+.noConvoSelected h1 {
+    margin: 10px;
 }
