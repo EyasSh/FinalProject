@@ -17,7 +17,7 @@ function Convo(props) {
         const header = document.querySelector(".convoHeader")
         const pic = document.querySelector(".convoPicture")
         const name = document.querySelector(".convoName")
-
+        
         if (toggle){
             header.classList.add("headerEnlarged")
             pic.classList.add("picEnlarged")
@@ -33,8 +33,8 @@ function Convo(props) {
             {props.activeConvo ? 
                 <>
                     <div className="convoHeader">
-                        <img src={props.activeConvo.picture} alt="" className="convoPicture" onClick={() => toggleUserProfile(true)} />
-                        <span className="convoName" onClick={() => toggleUserProfile(true)}>{props.activeConvo.name}</span>
+                        <img src={props.activeConvo.picture} alt="" className="convoPicture" onClick={() => toggleUserProfile(true)} /><span className="convoName" onClick={() => toggleUserProfile(true)}>{props.activeConvo.name}</span>
+                        <p className='convoUID' >@{props.activeConvo.recipientId}</p> 
                         <div className="convoHeaderBtns">
                             <span id="voiceCallBtn"><PhoneFilled /></span>
                             <span id="videoCallBtn"><VideoCameraFilled /></span>

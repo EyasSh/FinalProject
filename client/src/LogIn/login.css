@@ -67,3 +67,7 @@ label.psw {
   fill: white
 }
 
+.errorMsg{
+  color: red
+  
+}

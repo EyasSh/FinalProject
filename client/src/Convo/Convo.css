@@ -41,7 +41,9 @@
     font-size: 30px;
     font-weight: bold;
     transition: transform 300ms ease;
+    
 }
+
 
 .profileTitle {
     transform: translate(40%, -40%);
