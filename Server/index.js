@@ -6,7 +6,7 @@ const bcrypt = require("bcryptjs");
 const mongoose =require('./DB/database.js')
 app.use(cors());
 app.use(express.json())
-const {db}=require('./DB/firebaseConf.js')
+
 
 const Users=require("./User/User")
 app.use("/User",Users)
