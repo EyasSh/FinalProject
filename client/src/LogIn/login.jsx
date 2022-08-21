@@ -5,8 +5,11 @@ import { UserOutlined } from '@ant-design/icons'
 import { EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
 import {Input ,Form} from 'antd'
 import * as Joi from "joi"
+import { firebaseApp } from "../DB/FireBaseConf";
+import {getAuth,signInWithEmailAndPassword} from "firebase/auth"
 
 function Login(){
+    let Auth=getAuth();
     const [errMsg, setErrMsg] = useState();
     function handleLogin(values){
         setErrMsg(null)
@@ -17,7 +20,13 @@ function Login(){
         const {error} = schema.validate({email: values.email, password: values.password})
         if (error) {
             setErrMsg(error.message)
+            return
         }
+        else{
+            signInWithEmailAndPassword(Auth,values.email,values.password)
+        }
+
+
     }
     return(
         <div className="Li-Container">
@@ -47,7 +56,9 @@ function Login(){
             <input 
             type="submit"
             value="Login"
+            onClick={handleLogin}
             className="Li-button"/>
+            
             </Form>
             
             <br />

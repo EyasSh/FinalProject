@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import {useNavigate} from 'react-router-dom'
 import './signup.css'
 import axios from 'axios'
+import { firebaseApp } from "../DB/FireBaseConf";
+import{getAuth, createUserWithEmailAndPassword} from "firebase/auth"
 
 function SignUp() {
     let [fullName,setFullName]=useState('');
@@ -9,28 +11,38 @@ function SignUp() {
     let [email,setEmail]=useState('');
     let [password,setPassword]=useState('');
     let nav=useNavigate();
+    let Auth=getAuth();
     const handleSubmit=async ()=>{
         
-        let data={
-            full_name:fullName,
-            number:number,
-            email:email,
-            password:password,
-        }
-        console.log(data)
+        // let data={
+        //     full_name:fullName,
+        //     number:number,
+        //     email:email,
+        //     password:password,
+        // }
+        // console.log(data)
       
-        let requestOptions={
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body:JSON.stringify(data)
+        // let requestOptions={
+        //     method:"POST",
+        //     headers:{"Content-Type":"application/json"},
+        //     body:JSON.stringify(data)
+        // }
+        // console.log(data)
+        // let res=await fetch("http://localhost:3100/User/register",requestOptions)
+        // if(res.ok){
+        //     nav('/')
+        // }
+        // else{
+        //     nav('/Signup')
+        // }
+        try{
+           let newUser=await createUserWithEmailAndPassword(Auth,email,password)
+           .then((res)=>{
+             alert(res.user)
+           }).catch(e=>console.log(e.message)) 
         }
-        console.log(data)
-        let res=await fetch("http://localhost:3100/User/register",requestOptions)
-        if(res.ok){
-            nav('/')
-        }
-        else{
-            nav('/Signup')
+        catch(e){
+
         }
     }
     return (
