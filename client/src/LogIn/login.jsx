@@ -12,7 +12,8 @@ function Login(){
     let Auth=getAuth();
     const [errMsg, setErrMsg] = useState();
     function handleLogin(values){
-        setErrMsg(null)
+        
+        setErrMsg(null) // resets the state
         const schema = Joi.object({
             email: Joi.string().email({tlds: {allow: false}}).required(),
             password: Joi.string().min(8).max(30).required()
@@ -23,7 +24,17 @@ function Login(){
             return
         }
         else{
-            signInWithEmailAndPassword(Auth,values.email,values.password)
+            try{
+                signInWithEmailAndPassword(Auth,values.email,values.password)
+                .then((res)=>{
+                localStorage.setItem("user",JSON.stringify(res.user))
+                })
+            }
+            catch(e){
+                alert(e.message)
+            }
+            
+            
         }
 
 

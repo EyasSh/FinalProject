@@ -38,7 +38,8 @@ function SignUp() {
         try{
            let newUser=await createUserWithEmailAndPassword(Auth,email,password)
            .then((res)=>{
-             alert(res.user)
+             alert(JSON.stringify(res.user.email))
+             localStorage.setItem("newUser",JSON.stringify(res.user))
            }).catch(e=>console.log(e.message)) 
         }
         catch(e){
