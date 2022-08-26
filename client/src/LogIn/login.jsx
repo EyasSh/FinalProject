@@ -9,69 +9,50 @@ import { firebaseApp } from "../DB/FireBaseConf";
 import {getAuth,signInWithEmailAndPassword} from "firebase/auth"
 
 function Login(){
-    let Auth=getAuth();
+    let Auth=getAuth(firebaseApp);
     const [errMsg, setErrMsg] = useState();
-    function handleLogin(values){
-        
+    const [email, setEmail] = useState("");
+    const [passwd, setPasswd] = useState("");
+
+    function handleLogin(){     
         setErrMsg(null) // resets the state
         const schema = Joi.object({
-            email: Joi.string().email({tlds: {allow: false}}).required(),
-            password: Joi.string().min(8).max(30).required()
+            Email: Joi.string().email({tlds: {allow: false}}).required(),
+            Password: Joi.string().min(8).max(30).required()
         })
-        const {error} = schema.validate({email: values.email, password: values.password})
+        const {error} = schema.validate({Email: email, Password: passwd})
         if (error) {
             setErrMsg(error.message)
             return
         }
         else{
             try{
-                signInWithEmailAndPassword(Auth,values.email,values.password)
-                .then((res)=>{
-                localStorage.setItem("user",JSON.stringify(res.user))
-                })
+                if (!getAuth().currentUser){
+                    signInWithEmailAndPassword(Auth, email, passwd)
+                    .then((res)=>{
+                        localStorage.setItem("user",JSON.stringify(res.user))
+                    })    
+                } else {
+                    alert("already authenticated")
+                }
             }
             catch(e){
                 alert(e.message)
-            }
-            
-            
+            }   
         }
-
-
     }
+
     return(
         <div className="Li-Container">
-            <Form
-                onFinish={handleLogin}
-            >
-            <Form.Item label='Email/Phone' name={'email'}
-            >
-                <Input 
-                className="Email"
-                placeholder="Email/Phone"
-                prefix={<UserOutlined className="Icons-User"></UserOutlined>}/>
-            </Form.Item>
-            <Form.Item
-                label="Password"
-                name="password"
-            >
-                <Input.Password 
-                className="Password"
-                placeholder="Password"
-                iconRender={visible => (visible ? <span className="Icon-Password"> <EyeTwoTone  /> </span>: 
-                <span className="Icon-Password"> <EyeInvisibleOutlined  /> </span> )}
-                />
-            </Form.Item>
-            {errMsg ? <span className="errorMsg">{errMsg}</span>: ""} 
-            <br />
-            <input 
-            type="submit"
-            value="Login"
-            onClick={handleLogin}
-            className="Li-button"/>
+           <label>Email</label>
+           <input className="loginInput" type={'text'}
+           placeholder='Email' onChange={(e) => setEmail(e.target.value)}/>
+           <label>Password</label>
+           <input className="loginInput" type={'text'} 
+           placeholder='Password' onChange={(e) => setPasswd(e.target.value)}/>
+           <button className="Li-button" type="submit" onClick={handleLogin}>Login</button>
             
-            </Form>
-            
+            {errMsg ? <span className="errMsg">{errMsg}</span> : ""}
             <br />
             <span className="No-Acc">Dont Have an Account? <Link to={"/Signup"}><u className="SignUp">Sign Up</u></Link></span>
 

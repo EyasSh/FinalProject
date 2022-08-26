@@ -1,13 +1,10 @@
-.Email input,
-.Password input {
-  margin-bottom: 2%;
-  display: inline-block;
-  border: none;
+.loginInput {
+  border-radius: 5px;
   outline: none;
-  padding: 5px 5px;
   width: 100%;
-  
-  color: black ;
+  border: 0;
+  padding: 5px;
+  margin-bottom: 10px;
 }
 
 ::placeholder{
@@ -16,33 +13,36 @@
 }
 label{
   color: white;
+  align-self: flex-start;
 }
 
 .Li-Container
 {
   position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
 }
+
 .Li-button {
+  position: relative;
   background-color: #ffffff;
   color: black;
-  height: 3vh;
-  margin-left:3vw ;
+  margin-top: 4px;
+  height: 30px;
   border: none;
   cursor: pointer;
   text-align: center;
-  width: 8vw;
+  width: 100px;
   transition:all 0.2s ease;
 }
 
 .Li-button:hover {
   background-color: black ;
   color: white;
-}
-.Li-Container {
-  padding: 16px;
 }
 
 label.psw {
@@ -57,17 +57,9 @@ label.psw {
 {
   cursor: pointer;
 }
-.Icons-User {
-  display: none;
-  background-color: white;
-  color: black; 
-}
 
-.ant-input-password-icon svg{
-  fill: white
-}
 
-.errorMsg{
-  color: red
-  
+.errMsg{
+  color: red;
+  text-align: center;
 }
