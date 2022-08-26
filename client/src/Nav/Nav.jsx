@@ -2,8 +2,12 @@ import React, { Component, useState } from 'react';
 import "./Nav.css"
 import {SearchOutlined, ArrowLeftOutlined, CommentOutlined} from '@ant-design/icons';
 import { format } from 'timeago.js';
+import { firebaseApp } from "../DB/FireBaseConf";
+import {getAuth, signInWithEmailAndPassword, onAuthStateChanged} from "firebase/auth"
+
 
 export default function Nav(props) {
+    const Auth = getAuth(firebaseApp)
     const [searchFeild, setSearchFeild] = useState("")
     const [convoModalOpen, setConvoModalOpen] = useState(false)
     const [checkedContacts, setCheckedContacts] = useState([])
@@ -55,18 +59,22 @@ export default function Nav(props) {
         const chatsWrapper = document.querySelector(".chatsWrapper")
         const profileInfo = document.querySelector(".profileInfo")
         const profileBackButton = document.querySelector(".profileBackButton")
+        const logoutBtn = document.querySelector(".logOut")
+
         if (open){
             header.classList.add("hidden")
             chatsWrapper.classList.add("hidden")
             picture.classList.add("profileBtnOpen")
             profileInfo.classList.remove("hidden")
             profileBackButton.classList.remove("hiddenLeft")
+            logoutBtn.classList.remove("hidden")
         } else {
             header.classList.remove("hidden")
             chatsWrapper.classList.remove("hidden")
             picture.classList.remove("profileBtnOpen")
             profileInfo.classList.add("hidden")
             profileBackButton.classList.add("hiddenLeft")
+            logoutBtn.classList.add("hidden")
         }
     }
 
@@ -157,6 +165,7 @@ export default function Nav(props) {
                 <span className="profileName">Name: Eyas Sharary</span>
                 <span className="profileId">ID: eyas_sharary</span>
             </div>
+            <button onClick={(e) => Auth.signOut()} className="logOut hidden">Log Out</button>
         </div>
 
         {/* New Conversation Prompt */}

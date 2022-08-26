@@ -33,6 +33,23 @@
     transform: scale(3, 3) translate(50%, 60%);
 }
 
+.logOut {
+    position: absolute;
+    top: 40px;
+    right: 20px;
+    outline: none;
+    border: 2px red solid;
+    color: red;
+    transition: all 200ms;
+    background: none;
+    font-size: 20px;
+}
+
+.logOut:hover {
+    background-color: red;
+    color: white;
+}
+
 .Nav {
     position: absolute;
     left: 0%;

@@ -1,18 +1,27 @@
 import "./login.css"
-import {useState} from "react"
-import { Link } from "react-router-dom"
+import {useState, useEffect} from "react"
+import { Link, Navigate, useNavigate} from "react-router-dom"
 import { UserOutlined } from '@ant-design/icons'
 import { EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
 import {Input ,Form} from 'antd'
 import * as Joi from "joi"
 import { firebaseApp } from "../DB/FireBaseConf";
-import {getAuth,signInWithEmailAndPassword} from "firebase/auth"
+import {getAuth, signInWithEmailAndPassword, onAuthStateChanged} from "firebase/auth"
 
 function Login(){
     let Auth=getAuth(firebaseApp);
     const [errMsg, setErrMsg] = useState();
     const [email, setEmail] = useState("");
     const [passwd, setPasswd] = useState("");
+    const [isLoading, setIsLoading] = useState(true)
+    const navigate = useNavigate()
+
+    onAuthStateChanged(Auth, (user) => {
+        setIsLoading(false)
+        if (user){
+            navigate("/app")
+        }
+    })
 
     function handleLogin(){     
         setErrMsg(null) // resets the state
@@ -42,22 +51,27 @@ function Login(){
         }
     }
 
-    return(
-        <div className="Li-Container">
-           <label>Email</label>
-           <input className="loginInput" type={'text'}
-           placeholder='Email' onChange={(e) => setEmail(e.target.value)}/>
-           <label>Password</label>
-           <input className="loginInput" type={'text'} 
-           placeholder='Password' onChange={(e) => setPasswd(e.target.value)}/>
-           <button className="Li-button" type="submit" onClick={handleLogin}>Login</button>
-            
-            {errMsg ? <span className="errMsg">{errMsg}</span> : ""}
-            <br />
-            <span className="No-Acc">Dont Have an Account? <Link to={"/Signup"}><u className="SignUp">Sign Up</u></Link></span>
-
-        </div>
+    if (!isLoading){
+        return !Auth.currentUser ? (
+            <div className="Li-Container">
+               <label>Email</label>
+               <input className="loginInput" type={'text'}
+               placeholder='Email' onChange={(e) => setEmail(e.target.value)}/>
+               <label>Password</label>
+               <input className="loginInput" type={'text'} 
+               placeholder='Password' onChange={(e) => setPasswd(e.target.value)}/>
+               <button className="Li-button" type="submit" onClick={handleLogin}>Login</button>
+                
+                {errMsg ? <span className="errMsg">{errMsg}</span> : ""}
+                <br />
+                <span className="No-Acc">Dont Have an Account? <Link to={"/Signup"}><u className="SignUp">Sign Up</u></Link></span>
     
-    )   
+            </div>
+        ) : (
+            <Navigate to="/app"/>
+        )
+    } else {
+        return ""
+    }
 }
 export default Login

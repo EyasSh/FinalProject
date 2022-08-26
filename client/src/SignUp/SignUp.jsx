@@ -1,21 +1,30 @@
 import React, { useState } from 'react';
-import {useNavigate} from 'react-router-dom'
+import {Navigate, useNavigate} from 'react-router-dom'
 import './signup.css'
 import axios from 'axios'
 import { firebaseApp } from "../DB/FireBaseConf";
-import{getAuth, createUserWithEmailAndPassword} from "firebase/auth"
+import{getAuth, createUserWithEmailAndPassword, onAuthStateChanged} from "firebase/auth"
 import * as Joi from "joi"
 
 
 function SignUp() {
-    let nav=useNavigate();
-    let Auth=getAuth();
+    let Auth=getAuth(firebaseApp);
     const [fname, setFname] = useState("");
     const [lname, setLname] = useState("");
     const [phone, setPhone] = useState("");
     const [email, setEmail] = useState("");
     const [passwd, setPasswd] = useState("");
     const [errMsg, setErrMsg] = useState("")
+    const [isLoading, setIsLoading] = useState(true)
+    const navigate = useNavigate()
+
+    onAuthStateChanged(Auth, (user) => {
+        setIsLoading(false)
+        
+        if (user){
+            navigate("/app")
+        }
+    })
 
     const handleSubmit=async ()=>{
         setErrMsg("")
@@ -51,56 +60,62 @@ function SignUp() {
         }
     }
 
-    return (
-        <div className='SuContainer'>
-            
-            <div className='signUpForm'>
-                <h1 className='SignUpHeader'><u>Sign Up</u></h1>
-                <label>
-                    First Name
-                </label>
-                <br></br>
-                <input placeholder="First Name" type={"text"} className="UserData"
-                    onChange={(e) => setFname(e.target.value)}
-                />
-
-                <label>
-                    Last Name
-                </label>
-                <br></br>
-                <input placeholder="Last Name" type={"text"} className="UserData"
-                    onChange={(e) => setLname(e.target.value)}
-                />
-
-                <br></br>
-                <label>
-                    Phone
-                </label>
-                <br></br>
-                <input placeholder="Phone" type={"text"} className="UserData"
-                onChange={(e) => setPhone(e.target.value)}
-                />
-                <br></br>
-                <label >Email</label>
-                <br></br>
-                <input type={"text"} placeholder="Email" className="UserData"
-                    onChange={(e) => setEmail(e.target.value)}
-                />
-                <br></br>
-                <label>Password</label>
-                <br></br>
-                <input type={"password"} placeholder="Password" className="UserData"
-                    onChange={(e) => setPasswd(e.target.value)}
-                />
-                {errMsg ? <span className="errMsg">{errMsg}</span> : ""}
-                <br></br>
-                <button className="Submit" 
-                onClick={handleSubmit} >Sign Up</button>
+    if(!isLoading){
+        return !Auth.currentUser ? (
+            <div className='SuContainer'>
+                
+                <div className='signUpForm'>
+                    <h1 className='SignUpHeader'><u>Sign Up</u></h1>
+                    <label>
+                        First Name
+                    </label>
+                    <br></br>
+                    <input placeholder="First Name" type={"text"} className="UserData"
+                        onChange={(e) => setFname(e.target.value)}
+                    />
+    
+                    <label>
+                        Last Name
+                    </label>
+                    <br></br>
+                    <input placeholder="Last Name" type={"text"} className="UserData"
+                        onChange={(e) => setLname(e.target.value)}
+                    />
+    
+                    <br></br>
+                    <label>
+                        Phone
+                    </label>
+                    <br></br>
+                    <input placeholder="Phone" type={"text"} className="UserData"
+                    onChange={(e) => setPhone(e.target.value)}
+                    />
+                    <br></br>
+                    <label >Email</label>
+                    <br></br>
+                    <input type={"text"} placeholder="Email" className="UserData"
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
+                    <br></br>
+                    <label>Password</label>
+                    <br></br>
+                    <input type={"password"} placeholder="Password" className="UserData"
+                        onChange={(e) => setPasswd(e.target.value)}
+                    />
+                    {errMsg ? <span className="errMsg">{errMsg}</span> : ""}
+                    <br></br>
+                    <button className="Submit" 
+                    onClick={handleSubmit} >Sign Up</button>
+                </div>
+                
+                
             </div>
-            
-            
-        </div>
-    );
+        ) : (
+            <Navigate to="/app"/>
+        )    
+    } else {
+        return ""
+    }
 }
 
 export default SignUp;  

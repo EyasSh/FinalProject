@@ -1,9 +1,23 @@
 import React, { useState } from 'react';
-import {Outlet} from 'react-router-dom'
+import {Outlet, Navigate, useNavigate} from 'react-router-dom'
 import Convo from '../Convo/Convo';
 import Nav from '../Nav/Nav';
+import { firebaseApp } from "../DB/FireBaseConf";
+import{getAuth, createUserWithEmailAndPassword, onAuthStateChanged} from "firebase/auth"
+
 
 function Home(props) {
+    const Auth = getAuth(firebaseApp)
+    const [isLoading, setIsLoading] = useState(true)
+    const navigate = useNavigate()
+
+    onAuthStateChanged(Auth, (user) => {
+        setIsLoading(false)
+
+        if (!user){
+            navigate("/")
+        }
+    })
 
     // SAMPLE DATA
     const myId = "eyas_sharary"
@@ -55,14 +69,20 @@ function Home(props) {
     })
 
     const [activeConvo, setActiveConvo] = useState(null)
-    return (
-        <div>
-            
-            <Nav openConvo={setActiveConvo} chats={chats} />
-            <Convo activeConvo={chats.find(convo => convo.convoID == activeConvo)}/>
-            <Outlet></Outlet>
-        </div>
-    );
+    if (!isLoading){
+        return Auth.currentUser ? (
+            <div>
+                
+                <Nav openConvo={setActiveConvo} chats={chats} />
+                <Convo activeConvo={chats.find(convo => convo.convoID == activeConvo)}/>
+                <Outlet></Outlet>
+            </div>
+        ) : (
+            <Navigate to="/"/>
+        )    
+    } else {
+        return ""
+    }
 }
 
 export default Home;
