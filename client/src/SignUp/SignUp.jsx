@@ -3,7 +3,7 @@ import {Navigate, useNavigate} from 'react-router-dom'
 import './signup.css'
 import axios from 'axios'
 import { firebaseApp } from "../DB/FireBaseConf";
-import{getAuth, createUserWithEmailAndPassword, onAuthStateChanged} from "firebase/auth"
+import{getAuth, createUserWithEmailAndPassword, onAuthStateChanged, updateProfile   } from "firebase/auth"
 import * as Joi from "joi"
 
 
@@ -53,7 +53,11 @@ function SignUp() {
                     let newUser=await createUserWithEmailAndPassword(Auth,email,passwd)
                     .then((res)=>{
                       localStorage.setItem("user",JSON.stringify(res.user))
-                    }).catch(e=>console.log(e.message))      
+                    updateProfile(Auth.currentUser, {
+                        displayName: `${fname} ${lname}`
+                      })
+                    })
+                    .catch(e=>console.log(e.message))      
                 }
             }
             catch(e){}

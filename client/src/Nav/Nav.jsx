@@ -1,9 +1,11 @@
 import React, { Component, useState } from 'react';
+import {useNavigate} from "react-router-dom";
 import "./Nav.css"
 import {SearchOutlined, ArrowLeftOutlined, CommentOutlined} from '@ant-design/icons';
 import { format } from 'timeago.js';
 import { firebaseApp } from "../DB/FireBaseConf";
 import {getAuth, signInWithEmailAndPassword, onAuthStateChanged} from "firebase/auth"
+import defaultPNG from "../Assets/Images/default.png"
 
 
 export default function Nav(props) {
@@ -12,6 +14,23 @@ export default function Nav(props) {
     const [convoModalOpen, setConvoModalOpen] = useState(false)
     const [checkedContacts, setCheckedContacts] = useState([])
     const [newConvoSearch, setNewConvoSearch] = useState("")
+    const [displayName, setDisplayName] = useState("");
+    const [email, setEmail] = useState("");
+    const [profPic, setProfPic] = useState(defaultPNG)
+
+    const navigate = useNavigate();
+    onAuthStateChanged(Auth, (user) => {
+        if (!user){
+            navigate("/")
+        } else {
+            // we relaod the user object to make up for the delay of data after signing up
+            user.reload().then(()=> {
+                setDisplayName(user.displayName)
+                setEmail(user.email)
+                setProfPic(user.photoURL? user.photoURL : defaultPNG)
+            })
+        }
+    })
     
     const handlechange = e => {
         setSearchFeild(e.target.value)
@@ -115,8 +134,11 @@ export default function Nav(props) {
 
     const convoModal = (
         <>
-            <div className='convoModalOverlay' onClick={toggleConvoModal}></div>
-            <div className="convoModal">
+            <div className='modalOverlay' onClick={toggleConvoModal}></div>
+            <div className="modal" style={{
+                width: "500px",
+                height: "300px"                
+            }}>
                 <span className="exitBtn" onClick={toggleConvoModal}>x</span>
                 <div className="convoModalSearch">
                     <span className='convoModalSearchIcon'><SearchOutlined /></span>
@@ -135,14 +157,19 @@ export default function Nav(props) {
                         }) : <span>You don't have any contacts</span>
                     }
                 </div>
-                <button disabled={checkedContacts[0] == null} className="submitCreateConvo">Create Conversation</button>
+                <button disabled={checkedContacts[0] == null} className="submitModal">Create Conversation</button>
             </div>
         </>
-    )
+    );
 
+    const epModal = ( // ep stands for edit profile
+        <>
+        
+        </>
+    );
     return (
       <div className='Nav'>
-        <img src="https://instadownloader.co/view_photo.php?url=https%3A//instagram.fsdv1-2.fna.fbcdn.net/v/t51.2885-15/292586271_583938633454985_2981626577624270745_n.webp%3Fstp%3Ddst-jpg_e35%26_nc_ht%3Dinstagram.fsdv1-2.fna.fbcdn.net%26_nc_cat%3D105%26_nc_ohc%3D2Heioy5npy4AX_Ik2Th%26edm%3DAABBvjUBAAAA%26ccb%3D7-5%26ig_cache_key%3DMjg3ODU0NDc3MzU5NDkxOTE0NQ%253D%253D.2-ccb7-5%26oh%3D00_AT9wYxwOyXsIQJYA0JOJ3tFQtMJl0VcLaYQ_0Q-vo3gTVw%26oe%3D62F2CEDB%26_nc_sid%3D83d603" alt="" className="profileBtn" onClick={openProfile} />
+        <img src={profPic} alt="" className="profileBtn" onClick={openProfile} />
         <div className="header">
             <h1 className="chatsTitle">Chats</h1>
             <div className="searchBar">
@@ -162,8 +189,8 @@ export default function Nav(props) {
         <div className="profile">
             <span className="profileBackButton hiddenLeft" onClick={closeProfile}><ArrowLeftOutlined /></span>
             <div className="profileInfo hidden">
-                <span className="profileName">Name: Eyas Sharary</span>
-                <span className="profileId">ID: eyas_sharary</span>
+                <span className="profileName">Name: {displayName}</span>
+                <span className="profileId">Email: {email}</span>
             </div>
             <button onClick={(e) => Auth.signOut()} className="logOut hidden">Log Out</button>
         </div>

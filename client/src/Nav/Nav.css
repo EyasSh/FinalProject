@@ -210,7 +210,7 @@
     user-select: text;
 }
 
-.convoModalOverlay {
+.modalOverlay {
     position: fixed;
     top: 0;
     bottom: 0;
@@ -223,15 +223,13 @@
     z-index: 100;
 }
 
-.convoModal {
+.modal {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     background-color: white;
     opacity: 1;
-    width: 500px;
-    height: 300px;
     padding: 10px;
     z-index: 100;
     box-shadow: 0px 0px 26px 0px #000000;
@@ -286,7 +284,7 @@
     color: gray;
 }
 
-.submitCreateConvo{
+.submitModal{
     position: absolute;
     bottom: 10px;
     right: 10px;
@@ -298,12 +296,12 @@
     cursor: pointer;
 }
 
-.submitCreateConvo:hover{
+.submitModal:hover{
     background-color: #248bf5;
     color: white;
 }
 
-.submitCreateConvo:disabled {
+.submitModal:disabled {
     pointer-events: none;
     cursor: not-allowed;
 }
