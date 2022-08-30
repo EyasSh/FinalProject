@@ -26,6 +26,22 @@ function Login(){
         }
     })
 
+    useEffect(() => {
+        const keyDownHandler = event => {
+          console.log('User pressed: ', event.key);
+    
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            handleLogin()
+          }
+        };
+        document.addEventListener('keydown', keyDownHandler);
+    
+        return () => {
+          document.removeEventListener('keydown', keyDownHandler); // cleanup
+        };
+      }, []);
+
     function handleLogin(){     
         setErrMsg(null) // resets the state
         const schema = Joi.object({
@@ -43,7 +59,7 @@ function Login(){
                     signInWithEmailAndPassword(Auth, email, passwd)
                     .then((res)=>{
                         localStorage.setItem("user",JSON.stringify(res.user))
-                    })    
+                    }).catch(e => setErrMsg("Wrong email or password!"))
                 } else {
                     alert("already authenticated")
                 }

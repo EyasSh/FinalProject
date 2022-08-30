@@ -1,4 +1,5 @@
 import {React, useRef, useState} from 'react';
+import axios from "axios"
 
 //css
 import "./Modal.css"
@@ -10,7 +11,6 @@ import defaultPNG from "../Assets/Images/default.png"
 //firebase
 import { firebaseApp } from "../DB/FireBaseConf";
 import {getAuth, updateProfile} from "firebase/auth"
-import {getStorage, ref, uploadBytes, getDownloadURL, uploadBytesResumable} from "firebase/storage"
 
 
 function Modal(props) {
@@ -20,11 +20,20 @@ function Modal(props) {
 
     // edit profile modal states
     const Auth = getAuth(firebaseApp)
-    const Storage = getStorage(firebaseApp)
     const [epPhoto, setEpPhoto] = useState(props.profPic) // this state is to change the preview image before submitting the edit
     const inputImage = useRef(null)
     const [dname, setDname] = useState(Auth.currentUser.displayName)
     const epPrevImg = useRef(null)
+
+    //axios imgur instance
+    const imgur = axios.create({
+        baseURL: 'https://api.imgur.com/3/',
+        timeout: 60000,
+        headers: {
+            'Authorization': 'Client-ID 5c92913fb3701ad',
+            "Content-type": "application/x-www-form-urlencoded",
+        }
+    });
 
 
     const handleNewConvoSearch = e => {
@@ -80,9 +89,7 @@ function Modal(props) {
     }
 
     const saveEp = (e) => {
-        if (!(epPhoto == defaultPNG || epPhoto == props.profPic)){
-            updateProfPic(epPrevImg.current.src)
-        }
+        updateProfPic(epPrevImg.current.src)
         updateProfile(Auth.currentUser, {
             displayName: dname,
         })
@@ -90,39 +97,33 @@ function Modal(props) {
     }
 
     const updateProfPic = src => {
-        var reader = new FileReader()
-            reader.onload = function(e) {
-                // we need to turn the image into a byte array to upload it
-                var arrayBuffer = e.target.result
-                var array = new Uint8Array(arrayBuffer)
-
-                // then we upload it to firebase
-                const storageRef = ref(Storage, src)
-                const uploadTask = uploadBytesResumable(storageRef, array)
-
-                uploadTask.on('state_changed', 
-                (snapshot) => {
-                    // Observe state change events such as progress, pause, and resume
-                    // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
-                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                    console.log('Upload is ' + progress + '% done');
-                }, 
-                (error) => {
-                    // Handle unsuccessful uploads
-                }, 
-                () => {
-                        // Handle successful uploads on complete
-                        // For instance, get the download URL: https://firebasestorage.googleapis.com/...
-                        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-                        console.log('File available at', downloadURL);
-                        setEpPhoto(downloadURL)
-                        updateProfile(Auth.currentUser, {
-                            photoURL: downloadURL
-                        })
-                    });
-                });
-            }
-        reader.readAsArrayBuffer(inputImage.current.files[0])
+        // var reader = new FileReader()
+        //     reader.onload = function(e) {
+        //         // we need to turn the image into a byte array to upload it
+        //         var arrayBuffer = e.target.result
+        //         var array = new Uint8Array(arrayBuffer)
+        //         console.log(arrayBuffer)
+                
+        //     }
+        // reader.readAsArrayBuffer(inputImage.current.files[0])
+        if (inputImage.current.files[0]){
+            console.log("got a file")
+            const formData = new FormData()
+            formData.append("image", inputImage.current.files[0])
+            imgur.post("image", formData) // imgur doesnt accept localhost, so we pointed "collegehost" to local host and borwsed the page from collegehost:3000
+            .then(res => {
+                updateProfile(Auth.currentUser, {
+                    photoURL: res.data.data.link
+                }).then(() => {
+                    props.setProfPic(Auth.currentUser.photoURL) // to update the photo on the nav
+                })
+            })
+        } else {
+            console.log("removed")
+            updateProfile(Auth.currentUser, {
+                photoURL: 0
+            })
+        }
     }
 
     const modals = {
@@ -178,7 +179,7 @@ function Modal(props) {
                         </div>
 
                         <div className="epBtns">
-                            <button disabled={epPhoto == props.profPic} className="removeProfilePic" onClick={removeProfPic}>Remove Profile Picture</button>
+                            <button disabled={epPhoto == defaultPNG} className="removeProfilePic" onClick={removeProfPic}>Remove Profile Picture</button>
                             <button disabled={(dname.trim() == "" || dname == Auth.currentUser.displayName) && epPhoto == props.profPic} className="saveEp" onClick={saveEp}>Save</button>
                         </div>
                     </div>

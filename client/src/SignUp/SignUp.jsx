@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {Navigate, useNavigate} from 'react-router-dom'
 import './signup.css'
 import axios from 'axios'
@@ -26,6 +26,22 @@ function SignUp() {
             navigate("/app")
         }
     })
+
+    useEffect(() => {
+        const keyDownHandler = event => {
+          console.log('User pressed: ', event.key);
+    
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            handleSubmit()
+          }
+        };
+        document.addEventListener('keydown', keyDownHandler);
+    
+        return () => {
+          document.removeEventListener('keydown', keyDownHandler); // cleanup
+        };
+      }, []);
 
     const handleSubmit=async ()=>{
         setErrMsg("")
@@ -58,7 +74,10 @@ function SignUp() {
                         displayName: `${fname} ${lname}`
                       })
                     })
-                    .catch(e=>console.log(e.message))      
+                    .catch(e=>{
+                        console.log(e.message)
+                        setErrMsg("Email already exists!")
+                    })      
                 }
             }
             catch(e){}

@@ -26,7 +26,7 @@ export default function Nav(props) {
             user.reload().then(()=> {
                 setDisplayName(user.displayName)
                 setEmail(user.email)
-                setProfPic(user.photoURL? user.photoURL : defaultPNG)
+                setProfPic(user.photoURL == 0 || !user.photoURL ? defaultPNG : user.photoURL)
             })
         }
     })
@@ -136,7 +136,7 @@ export default function Nav(props) {
         </div>
 
         {/* Prompts */}
-        {modalOpen ? <Modal profPic={profPic} modalOpen={modalOpen} setModalOpen={setModalOpen} chats={chats} /> : ""}
+        {modalOpen ? <Modal setProfPic={setProfPic} profPic={profPic} modalOpen={modalOpen} setModalOpen={setModalOpen} chats={chats} /> : ""}
       </div>
     );
 }
