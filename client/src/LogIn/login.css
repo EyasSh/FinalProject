@@ -1,18 +1,26 @@
 .loginInput {
-  border-radius: 5px;
+  
   outline: none;
   width: 100%;
-  border: 0;
+  border:none;
+  border-bottom: #248bf5 1px solid;
   padding: 5px;
+  background-color: transparent;
+  
   margin-bottom: 10px;
 }
+.loginInput:focus, .loginInput:hover{
+  border-bottom: #248bf5 3px solid;
+  color: #248bf5;
+  caret-color: #248df5b0;
+}
 
-::placeholder{
-  color: rgb(112, 112, 112) ;
-  opacity: 90%;
+.loginInput::placeholder{
+  color: #248bf5;
+  opacity: 70%;
 }
 label{
-  color: white;
+  color: #248bf5;
   align-self: flex-start;
 }
 
@@ -29,11 +37,12 @@ label{
 
 .Li-button {
   position: relative;
-  background-color: #ffffff;
-  color: black;
+  background-color: transparent;
+  color: #248bf5;
   margin-top: 4px;
   height: 30px;
-  border: none;
+  border: #248bf5 1px solid;
+  border-radius: 5px;
   cursor: pointer;
   text-align: center;
   width: 100px;
@@ -41,7 +50,7 @@ label{
 }
 
 .Li-button:hover {
-  background-color: black ;
+  background-color: #248bf5 ;
   color: white;
 }
 
@@ -51,7 +60,7 @@ label.psw {
 
 .SignUp
 {
-  color:rgb(255, 255, 255);
+  color:#248bf5;
 }
 .SignUp:hover
 {
@@ -62,4 +71,8 @@ label.psw {
 .errMsg{
   color: red;
   text-align: center;
+}
+.Logo{
+  width:50%;
+  height: 50%;
 }

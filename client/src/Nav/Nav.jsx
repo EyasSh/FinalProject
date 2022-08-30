@@ -4,16 +4,15 @@ import "./Nav.css"
 import {SearchOutlined, ArrowLeftOutlined, CommentOutlined} from '@ant-design/icons';
 import { format } from 'timeago.js';
 import { firebaseApp } from "../DB/FireBaseConf";
-import {getAuth, signInWithEmailAndPassword, onAuthStateChanged} from "firebase/auth"
+import {getAuth, onAuthStateChanged} from "firebase/auth"
 import defaultPNG from "../Assets/Images/default.png"
+import Modal from "../Modal/Modal"
 
 
 export default function Nav(props) {
     const Auth = getAuth(firebaseApp)
     const [searchFeild, setSearchFeild] = useState("")
-    const [convoModalOpen, setConvoModalOpen] = useState(false)
-    const [checkedContacts, setCheckedContacts] = useState([])
-    const [newConvoSearch, setNewConvoSearch] = useState("")
+    const [modalOpen, setModalOpen] = useState(false)
     const [displayName, setDisplayName] = useState("");
     const [email, setEmail] = useState("");
     const [profPic, setProfPic] = useState(defaultPNG)
@@ -23,7 +22,7 @@ export default function Nav(props) {
         if (!user){
             navigate("/")
         } else {
-            // we relaod the user object to make up for the delay of data after signing up
+            // we reload the user object to make up for the delay of data after signing up
             user.reload().then(()=> {
                 setDisplayName(user.displayName)
                 setEmail(user.email)
@@ -34,10 +33,6 @@ export default function Nav(props) {
     
     const handlechange = e => {
         setSearchFeild(e.target.value)
-    }
-
-    const handleNewConvoSearch = e => {
-        setNewConvoSearch(e.target.value)
     }
 
     const chatsJSX = []
@@ -79,6 +74,7 @@ export default function Nav(props) {
         const profileInfo = document.querySelector(".profileInfo")
         const profileBackButton = document.querySelector(".profileBackButton")
         const logoutBtn = document.querySelector(".logOut")
+        const editBtn=document.querySelector(".Edit-Prof")
 
         if (open){
             header.classList.add("hidden")
@@ -87,6 +83,8 @@ export default function Nav(props) {
             profileInfo.classList.remove("hidden")
             profileBackButton.classList.remove("hiddenLeft")
             logoutBtn.classList.remove("hidden")
+            editBtn.classList.remove("hidden")
+
         } else {
             header.classList.remove("hidden")
             chatsWrapper.classList.remove("hidden")
@@ -94,79 +92,20 @@ export default function Nav(props) {
             profileInfo.classList.add("hidden")
             profileBackButton.classList.add("hiddenLeft")
             logoutBtn.classList.add("hidden")
+            editBtn.classList.add("hidden")
         }
     }
 
     //New conversation prompt functions
-    const toggleConvoModal = (event) => {
-        
-        setConvoModalOpen(!convoModalOpen)
-        setCheckedContacts([])
-    }
-
-    const getExistingConvos = () =>{
-        const convosList = []
-        chats.map(chat => {
-            if (chat.recipientId){ 
-                // This checks if the conversation is a group chat or a private chat
-                // we only want private chats
-                //we also need to handle search bar
-                if (newConvoSearch.trim == ""){
-                    convosList.push({name: chat.name, id: chat.recipientId})
-                } else if (chat.name.toLowerCase().includes(newConvoSearch.toLowerCase())
-                || chat.recipientId.toLowerCase().includes(newConvoSearch.toLowerCase())) {
-                    convosList.push({name: chat.name, id: chat.recipientId})
-                }
-            }
-        })
-        return convosList
-    }
-
-    const handleCheck = (event) =>{
-        var updatedList = [...checkedContacts]
-        if (event.target.checked){
-            updatedList = [...checkedContacts, event.target.value]
+    const toggleModal = (modalToOpen) => {
+        //modalToOpen options: newConvo, editProfile
+        if (typeof modalToOpen == "string"){
+            setModalOpen(modalToOpen)
         } else {
-            updatedList.splice(checkedContacts.indexOf(event.target.value), 1)
+            setModalOpen(false)
         }
-        setCheckedContacts(updatedList)
     }
 
-    const convoModal = (
-        <>
-            <div className='modalOverlay' onClick={toggleConvoModal}></div>
-            <div className="modal" style={{
-                width: "500px",
-                height: "300px"                
-            }}>
-                <span className="exitBtn" onClick={toggleConvoModal}>x</span>
-                <div className="convoModalSearch">
-                    <span className='convoModalSearchIcon'><SearchOutlined /></span>
-                    <input onChange={handleNewConvoSearch} className='convoModalSearchBar' type="text" placeholder='Enter username or select from the list bellow...' />
-                </div>
-                <div className="checkList">
-                    {
-                        getExistingConvos()[0] ? getExistingConvos().map(item => {
-                            return(
-                                <div className='checkListItemWrapper'>
-                                    <input value={item.id} type="checkbox" className="contactCheckBox" onChange={handleCheck}/>
-                                    <span className='contactItemName'>{item.name}</span>
-                                    <span className="contactItemId">{item.id}</span>
-                                </div>
-                            )
-                        }) : <span>You don't have any contacts</span>
-                    }
-                </div>
-                <button disabled={checkedContacts[0] == null} className="submitModal">Create Conversation</button>
-            </div>
-        </>
-    );
-
-    const epModal = ( // ep stands for edit profile
-        <>
-        
-        </>
-    );
     return (
       <div className='Nav'>
         <img src={profPic} alt="" className="profileBtn" onClick={openProfile} />
@@ -182,7 +121,7 @@ export default function Nav(props) {
 
         <div className="chatsWrapper">
             {chatsJSX}
-            <span className="createConvo" onClick={toggleConvoModal}><CommentOutlined /></span>
+            <span className="createConvo" onClick={() => toggleModal("newConvo")}><CommentOutlined /></span>
         </div>
 
         {/* PROFILE */}
@@ -192,11 +131,12 @@ export default function Nav(props) {
                 <span className="profileName">Name: {displayName}</span>
                 <span className="profileId">Email: {email}</span>
             </div>
+            <button onClick={() => toggleModal("editProfile")} className='Edit-Prof hidden'>Edit Profile</button>
             <button onClick={(e) => Auth.signOut()} className="logOut hidden">Log Out</button>
         </div>
 
-        {/* New Conversation Prompt */}
-        {convoModalOpen ? convoModal : ""}
+        {/* Prompts */}
+        {modalOpen ? <Modal profPic={profPic} modalOpen={modalOpen} setModalOpen={setModalOpen} chats={chats} /> : ""}
       </div>
     );
 }

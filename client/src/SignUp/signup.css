@@ -3,19 +3,19 @@
 {
     text-align: center;
     font-family: Arial, Helvetica, sans-serif;
-    color: white;
+    color: #248bf5;
 }
 .Submit
 {
-    border: none;
     width: 10vw;
     height: 3vh;
     margin-top: 5px;
-    background-color: #ffffff;
-    color: black ;
+    border: #248bf5 1px solid;
+    border-radius: 5px;
+    background-color: transparent;
+    color: #248bf5 ;
     font-family: Arial, Helvetica, sans-serif;
     transition:background-color 0.3s ease-out;
-    
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
@@ -24,17 +24,25 @@
 {
     color: white;
     cursor: pointer;
-    background-color: black;
+    background-color: #248bf5;
 }
 
-.signUpForm input{
-    border-radius: 5px;
+.UserData{
+    border: none;
+    border-bottom:  #248bf5 1px solid;
     align-self:flex-start ;
     outline: none;
     width: 100%;
-    border: 0;
+   
     padding: 5px;
     margin-bottom: 10px;
+}
+.UserData:hover, .UserData:focus{
+    border-bottom: #248bf5 3px solid;
+    caret-color: #248df5b0;
+}
+.UserData::placeholder{
+    color: #ffff;
 }
 
 .signUpForm

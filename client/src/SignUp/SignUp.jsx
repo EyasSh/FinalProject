@@ -5,6 +5,7 @@ import axios from 'axios'
 import { firebaseApp } from "../DB/FireBaseConf";
 import{getAuth, createUserWithEmailAndPassword, onAuthStateChanged, updateProfile   } from "firebase/auth"
 import * as Joi from "joi"
+import logo from "../Assets/Images/Logo.png"
 
 
 function SignUp() {
@@ -69,7 +70,8 @@ function SignUp() {
             <div className='SuContainer'>
                 
                 <div className='signUpForm'>
-                    <h1 className='SignUpHeader'><u>Sign Up</u></h1>
+                    <image src='../Assets/Images/Logo.png' />
+                    <h1 className='SignUpHeader'>Sign Up</h1>
                     <label>
                         First Name
                     </label>
