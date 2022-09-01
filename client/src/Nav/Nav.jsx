@@ -18,6 +18,7 @@ export default function Nav(props) {
     const [profPic, setProfPic] = useState(defaultPNG)
 
     const navigate = useNavigate();
+    // if there is no user authenticated redirect to login page
     onAuthStateChanged(Auth, (user) => {
         if (!user){
             navigate("/")
@@ -31,10 +32,11 @@ export default function Nav(props) {
         }
     })
     
-    const handlechange = e => {
+    const handleConvoSearch = e => {
         setSearchFeild(e.target.value)
     }
 
+    // Get the chats and render all of the ones that match the search
     const chatsJSX = []
     const chats = props.chats
     if (searchFeild.trim() === "") {
@@ -64,6 +66,8 @@ export default function Nav(props) {
         }
     }
     // END OF SAMPLE DATA
+
+    // Manipulate DOM classes for the personal profile open effects
     const openProfile = e => toggleProfile(true)
     const closeProfile = e => toggleProfile(false)
 
@@ -96,7 +100,7 @@ export default function Nav(props) {
         }
     }
 
-    //New conversation prompt functions
+    //Forms prompts (Modals)
     const toggleModal = (modalToOpen) => {
         //modalToOpen options: newConvo, editProfile
         if (typeof modalToOpen == "string"){
@@ -115,7 +119,7 @@ export default function Nav(props) {
                 <span className='searchIcon'>
                     <SearchOutlined />
                 </span>
-                <input placeholder='Search...' type="text" className="searchInput" onChange={handlechange} />
+                <input placeholder='Search...' type="text" className="searchInput" onChange={handleConvoSearch} />
             </div>
         </div>
 

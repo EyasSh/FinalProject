@@ -19,14 +19,17 @@ function Login(){
     const [isLoading, setIsLoading] = useState(true)
     const navigate = useNavigate()
 
+    //Wait for the user data before rendering
     onAuthStateChanged(Auth, (user) => {
         setIsLoading(false)
         if (user){
+            // if the user is looged in redirect him to the app
             navigate("/app")
         }
     })
 
     useEffect(() => {
+        //Listen for Enter key as an alternative to the Login button click
         const keyDownHandler = event => {
           console.log('User pressed: ', event.key);
     
@@ -38,26 +41,32 @@ function Login(){
         document.addEventListener('keydown', keyDownHandler);
     
         return () => {
+            //cleanup the listener on component unmount
           document.removeEventListener('keydown', keyDownHandler); // cleanup
         };
       }, []);
 
     function handleLogin(){     
-        setErrMsg(null) // resets the state
+        setErrMsg(null) // resets the error message
+
+        // check if the data is valid before sending it to firebase
         const schema = Joi.object({
             Email: Joi.string().email({tlds: {allow: false}}).required(),
             Password: Joi.string().min(8).max(30).required()
         })
         const {error} = schema.validate({Email: email, Password: passwd})
         if (error) {
+            // if the data is not valid output an error message
             setErrMsg(error.message)
             return
         }
         else{
             try{
+                // if there is no user logged in, log a user in with this data
                 if (!getAuth().currentUser){
                     signInWithEmailAndPassword(Auth, email, passwd)
                     .then((res)=>{
+                        //save the user in the local storage
                         localStorage.setItem("user",JSON.stringify(res.user))
                     }).catch(e => setErrMsg("Wrong email or password!"))
                 } else {
@@ -71,6 +80,7 @@ function Login(){
     }
 
     if (!isLoading){
+        // if there is a user authenticated redirect him to the app
         return !Auth.currentUser ? (
             <div className="Li-Container">
                 <img className="Logo" src={logo}></img>

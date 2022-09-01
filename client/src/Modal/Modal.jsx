@@ -32,6 +32,7 @@ function Modal(props) {
         setNewConvoSearch(e.target.value)
     }
 
+    //gets the existing conversation in order to suggest contacts for a new conversation
     const getExistingConvos = () =>{
         const convosList = []
         props.chats.map(chat => {
@@ -50,6 +51,7 @@ function Modal(props) {
         return convosList
     }
 
+    // Handle a checkbox change on the modal to create a new convo
     const handleCheck = (event) =>{
         var updatedList = [...checkedContacts]
         if (event.target.checked){
@@ -60,6 +62,7 @@ function Modal(props) {
         setCheckedContacts(updatedList)
     }
 
+    //closes the modal and clears the not needed data
     const closeModal = () => {
         props.setModalOpen(false)
         setCheckedContacts([])
@@ -69,6 +72,7 @@ function Modal(props) {
         setEpPhoto(defaultPNG)
     }
 
+    // updates the preview image when the user selects a file for their profile pic
     const previewImage = (e) => {
         if (e.target.files[0]){
             if (e.target.files[0].size > 8000000){
@@ -88,6 +92,7 @@ function Modal(props) {
         }
     }
 
+    //saves the edit profile form and uploads the new data
     const saveEp = (e) => {
         if (epPhoto == defaultPNG){
             updateProfile(Auth.currentUser, {
@@ -135,6 +140,8 @@ function Modal(props) {
         });
     }
 
+    // Modal types
+    //TODO: Add an incoming call modal
     const modals = {
         "newConvo": (
             <>

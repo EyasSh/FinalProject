@@ -19,15 +19,18 @@ function SignUp() {
     const [isLoading, setIsLoading] = useState(true)
     const navigate = useNavigate()
 
+    //Wait for the user to load before rendering
     onAuthStateChanged(Auth, (user) => {
         setIsLoading(false)
         
         if (user){
+            // if there is an authenticated user redirect to the app page
             navigate("/app")
         }
     })
 
     useEffect(() => {
+        // Listen for an Enter key press as an alternative for the sign up button
         const keyDownHandler = event => {
           console.log('User pressed: ', event.key);
     
@@ -44,7 +47,9 @@ function SignUp() {
       }, []);
 
     const handleSubmit=async ()=>{
-        setErrMsg("")
+        setErrMsg("") // reset the error message
+
+        // Check if the fields are valid before sending them to firebase servers
         const schema = Joi.object({
             "First Name": Joi.string().regex(/^[a-zA-Z ]*$/).messages({'string.pattern.base': `First Name can only contain letters.`}).min(2).max(20).required(),
             "Last Name": Joi.string().regex(/^[a-zA-Z ]*$/).messages({'string.pattern.base': `Last Name can only contain letters.`}).min(2).max(20).required(),
@@ -66,6 +71,7 @@ function SignUp() {
             return
         } else {
             try{
+                // make sure there is no authenticated user before signup
                 if (!getAuth().currentUser){
                     let newUser=await createUserWithEmailAndPassword(Auth,email,passwd)
                     .then((res)=>{

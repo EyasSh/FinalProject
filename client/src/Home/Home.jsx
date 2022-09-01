@@ -11,6 +11,7 @@ function Home(props) {
     const [isLoading, setIsLoading] = useState(true)
     const navigate = useNavigate()
 
+    // wait for the user data before rendering the page
     onAuthStateChanged(Auth, (user) => {
         setIsLoading(false)
 
