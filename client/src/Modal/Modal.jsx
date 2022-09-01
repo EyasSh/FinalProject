@@ -1,5 +1,5 @@
 import {React, useRef, useState} from 'react';
-import axios from "axios"
+import {v4 as uuidv4} from 'uuid'
 
 //css
 import "./Modal.css"
@@ -11,6 +11,7 @@ import defaultPNG from "../Assets/Images/default.png"
 //firebase
 import { firebaseApp } from "../DB/FireBaseConf";
 import {getAuth, updateProfile} from "firebase/auth"
+import {getStorage, ref, getDownloadURL, uploadBytesResumable} from "firebase/storage"
 
 
 function Modal(props) {
@@ -20,21 +21,12 @@ function Modal(props) {
 
     // edit profile modal states
     const Auth = getAuth(firebaseApp)
+    const Storage = getStorage(firebaseApp)
     const [epPhoto, setEpPhoto] = useState(props.profPic) // this state is to change the preview image before submitting the edit
     const inputImage = useRef(null)
     const [dname, setDname] = useState(Auth.currentUser.displayName)
     const epPrevImg = useRef(null)
-
-    //axios imgur instance
-    const imgur = axios.create({
-        baseURL: 'https://api.imgur.com/3/',
-        timeout: 60000,
-        headers: {
-            'Authorization': 'Client-ID 5c92913fb3701ad',
-            "Content-type": "application/x-www-form-urlencoded",
-        }
-    });
-
+    const allowedImgTypes = ["image/png", "image/jpg", "image/jpeg"]
 
     const handleNewConvoSearch = e => {
         setNewConvoSearch(e.target.value)
@@ -79,51 +71,68 @@ function Modal(props) {
 
     const previewImage = (e) => {
         if (e.target.files[0]){
+            if (e.target.files[0].size > 8000000){
+                e.target.files = []
+                return alert("Can't upload a file larger than 8MB")
+            }
+            if (!allowedImgTypes.includes(e.target.files[0].type)){
+                e.target.files = []
+                return alert("Unsupported type")
+            }
             var reader = new FileReader()
             reader.onload = function(e) {
                 epPrevImg.current.src = e.target.result
+                setEpPhoto(e.target.result)
             }
             reader.readAsDataURL(e.target.files[0])
-            setEpPhoto(epPrevImg.current.src)
         }
     }
 
     const saveEp = (e) => {
-        updateProfPic(epPrevImg.current.src)
-        updateProfile(Auth.currentUser, {
-            displayName: dname,
-        })
+        if (epPhoto == defaultPNG){
+            updateProfile(Auth.currentUser, {
+                displayName: dname,
+                photoURL: 0
+            })
+            props.setProfPic(defaultPNG)
+        } else if (inputImage.current.files[0]){
+            updateProfPic(inputImage.current.files[0])
+        } else {
+            updateProfile(Auth.currentUser, {
+                displayName: dname,
+            })
+        }
         closeModal()
     }
 
+    // TODO: Move this function to a util folder and only return the download link
+    // TODO: Make this function check for duplicates in the firebase by naming it by the MD5 ID
     const updateProfPic = src => {
-        // var reader = new FileReader()
-        //     reader.onload = function(e) {
-        //         // we need to turn the image into a byte array to upload it
-        //         var arrayBuffer = e.target.result
-        //         var array = new Uint8Array(arrayBuffer)
-        //         console.log(arrayBuffer)
-                
-        //     }
-        // reader.readAsArrayBuffer(inputImage.current.files[0])
-        if (inputImage.current.files[0]){
-            console.log("got a file")
-            const formData = new FormData()
-            formData.append("image", inputImage.current.files[0])
-            imgur.post("image", formData) // imgur doesnt accept localhost, so we pointed "collegehost" to local host and borwsed the page from collegehost:3000
-            .then(res => {
+        if (!src) return
+        const storageRef = ref(Storage, `${Auth.currentUser.uid}/${src.name}-${uuidv4()}`) // the second argument is the path to the file in firebase
+        const uploadTask = uploadBytesResumable(storageRef, src)
+
+        uploadTask.on('state_changed', 
+        (snapshot) => {
+            // Observe state change events such as progress, pause, and resume
+            // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            console.log('Upload is ' + progress + '% done');
+        }, 
+        (error) => {
+            // Handle unsuccessful uploads
+        }, 
+        () => {
+                // Handle successful uploads on complete
+                // For instance, get the download URL: https://firebasestorage.googleapis.com/...
+                getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                console.log('File available at', downloadURL);
+                props.setProfPic(downloadURL)
                 updateProfile(Auth.currentUser, {
-                    photoURL: res.data.data.link
-                }).then(() => {
-                    props.setProfPic(Auth.currentUser.photoURL) // to update the photo on the nav
+                    photoURL: downloadURL
                 })
-            })
-        } else {
-            console.log("removed")
-            updateProfile(Auth.currentUser, {
-                photoURL: 0
-            })
-        }
+            });
+        });
     }
 
     const modals = {
@@ -164,7 +173,7 @@ function Modal(props) {
                 }}>
                     <div className="epInfo">
                         <span className="exitBtn" onClick={closeModal}>x</span>
-                        <input onChange={previewImage} ref={inputImage} type="file" accept='image/*' alt="" style={{display: "none"}} />
+                        <input onChange={previewImage} ref={inputImage} type="file" accept='image/png, image/jpg, image/jpeg' alt="" style={{display: "none"}} />
                         <img ref={epPrevImg} onClick={() => inputImage.current.click()} src={epPhoto} alt="" className="epImage" />
 
                         <div>
