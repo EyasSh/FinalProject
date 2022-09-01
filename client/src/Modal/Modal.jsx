@@ -1,5 +1,7 @@
 import {React, useRef, useState} from 'react';
 import MD5 from "crypto-js/md5"
+import * as Joi from "joi"
+import axios from "axios"
 
 //css
 import "./Modal.css"
@@ -18,6 +20,7 @@ function Modal(props) {
     // new convo modal states
     const [checkedContacts, setCheckedContacts] = useState([])
     const [newConvoSearch, setNewConvoSearch] = useState("")
+    const [convosList, setConvosList] = useState([])
 
     // edit profile modal states
     const Auth = getAuth(firebaseApp)
@@ -32,9 +35,22 @@ function Modal(props) {
         setNewConvoSearch(e.target.value)
     }
 
+    //gets the user by its email from the server
+    const getUserByEmail = email => {
+        const schema = Joi.object({
+            Email: Joi.string().email({tlds: {allow: false}}).required()
+        })
+        const {error} = schema.validate({Email: newConvoSearch})
+        if (!error){
+            axios.get(`http://localhost:5000/users?email=${newConvoSearch}`)
+            .then((res) => {
+                setConvosList([...convosList, res.data])
+            })
+        }
+    }
+
     //gets the existing conversation in order to suggest contacts for a new conversation
-    const getExistingConvos = () =>{
-        const convosList = []
+    const updateExistingConvos = () =>{
         props.chats.map(chat => {
             if (chat.recipientId){ 
                 // This checks if the conversation is a group chat or a private chat
@@ -185,16 +201,17 @@ function Modal(props) {
                     <span className="exitBtn" onClick={closeModal}>x</span>
                     <div className="convoModalSearch">
                         <span className='convoModalSearchIcon'><SearchOutlined /></span>
-                        <input onChange={handleNewConvoSearch} className='convoModalSearchBar' type="text" placeholder='Enter username or select from the list bellow...' />
+                        <input onChange={handleNewConvoSearch} className='convoModalSearchBar' type="text" placeholder='Enter email or select from the list bellow...' />
+                        <button onClick={() => getUserByEmail(newConvoSearch)} className='convoModalSearchEmail'>Search email</button>
                     </div>
                     <div className="checkList">
                         {
-                            getExistingConvos()[0] ? getExistingConvos().map(item => {
+                            updateExistingConvos()[0] ? updateExistingConvos().map(user => {
                                 return(
                                     <div className='checkListItemWrapper'>
-                                        <input value={item.id} type="checkbox" className="contactCheckBox" onChange={handleCheck}/>
-                                        <span className='contactItemName'>{item.name}</span>
-                                        <span className="contactItemId">{item.id}</span>
+                                        <input value={user} type="checkbox" className="contactCheckBox" onChange={handleCheck}/>
+                                        <span className='contactItemName'>{user.displayName}</span>
+                                        <span className="contactItemId">{user.email}</span>
                                     </div>
                                 )
                             }) : <span>You don't have any contacts</span>
