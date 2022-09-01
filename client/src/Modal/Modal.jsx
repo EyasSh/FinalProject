@@ -1,5 +1,5 @@
 import {React, useRef, useState} from 'react';
-import {v4 as uuidv4} from 'uuid'
+import MD5 from "crypto-js/md5"
 
 //css
 import "./Modal.css"
@@ -110,34 +110,67 @@ function Modal(props) {
         closeModal()
     }
 
-    // TODO: Move this function to a util folder and only return the download link
-    // TODO: Make this function check for duplicates in the firebase by naming it by the MD5 ID
-    const updateProfPic = src => {
-        if (!src) return
-        const storageRef = ref(Storage, `${Auth.currentUser.uid}/${src.name}-${uuidv4()}`) // the second argument is the path to the file in firebase
-        const uploadTask = uploadBytesResumable(storageRef, src)
+    //calculates the MD5 hash of a string
+    const getMD5 = async (file) => {
+        const reader = new FileReader()
+        var hashMD5 = null
+        reader.onload = function(e){
+            hashMD5 = MD5(e.target.result)
+        }
+        reader.readAsBinaryString(file)
+        while (hashMD5 == null){
+            await sleep(100)
+        } 
+        return hashMD5
+    }
 
-        uploadTask.on('state_changed', 
-        (snapshot) => {
-            // Observe state change events such as progress, pause, and resume
-            // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            console.log('Upload is ' + progress + '% done');
-        }, 
-        (error) => {
-            // Handle unsuccessful uploads
-        }, 
-        () => {
-                // Handle successful uploads on complete
-                // For instance, get the download URL: https://firebasestorage.googleapis.com/...
-                getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-                console.log('File available at', downloadURL);
-                props.setProfPic(downloadURL)
-                updateProfile(Auth.currentUser, {
-                    photoURL: downloadURL
-                })
-            });
-        });
+    // a sleep function
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    // TODO: Move this function to a util folder and only return the download link
+    const updateProfPic = async src => {
+        if (!src) return
+        // we name the file with its md5 hash to prevent file duplicates
+        const storageRef = ref(Storage, `${Auth.currentUser.uid}/${await getMD5(src)}`) // the second argument is the path to the file in firebase
+        getDownloadURL(storageRef)
+        .then(url => {
+            //no need to upload
+            console.log(`File Exists at: ${url}`)
+            updateProfile(Auth.currentUser, {
+                photoURL: url
+            })
+            .then (() => {
+                props.setProfPic(Auth.currentUser.photoURL)
+            })
+        })
+        .catch(() => {
+            //an error means the file needs to be uploaded
+            const uploadTask = uploadBytesResumable(storageRef, src)
+
+            uploadTask.on('state_changed', 
+            (snapshot) => {
+                // Observe state change events such as progress, pause, and resume
+                // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                console.log('Upload is ' + progress + '% done');
+            }, 
+            (error) => {
+                // Handle unsuccessful uploads
+            }, 
+            () => {
+                    // Handle successful uploads on complete
+                    // For instance, get the download URL: https://firebasestorage.googleapis.com/...
+                    getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                    console.log('File available at', downloadURL);
+                    props.setProfPic(downloadURL)
+                    updateProfile(Auth.currentUser, {
+                        photoURL: downloadURL
+                    })
+                });
+            });    
+        })
     }
 
     // Modal types
