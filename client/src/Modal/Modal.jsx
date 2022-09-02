@@ -1,7 +1,6 @@
 import {React, useRef, useState} from 'react';
 import MD5 from "crypto-js/md5"
 import * as Joi from "joi"
-import axios from "axios"
 
 //css
 import "./Modal.css"
@@ -20,7 +19,7 @@ function Modal(props) {
     // new convo modal states
     const [checkedContacts, setCheckedContacts] = useState([])
     const [newConvoSearch, setNewConvoSearch] = useState("")
-    const [convosList, setConvosList] = useState([])
+    const [contactList, setcontactList] = useState([])
 
     // edit profile modal states
     const Auth = getAuth(firebaseApp)
@@ -30,6 +29,8 @@ function Modal(props) {
     const [dname, setDname] = useState(Auth.currentUser.displayName)
     const epPrevImg = useRef(null)
     const allowedImgTypes = ["image/png", "image/jpg", "image/jpeg"]
+
+    const server = props.server
 
     const handleNewConvoSearch = e => {
         setNewConvoSearch(e.target.value)
@@ -42,29 +43,50 @@ function Modal(props) {
         })
         const {error} = schema.validate({Email: newConvoSearch})
         if (!error){
-            axios.get(`http://localhost:5000/users?email=${newConvoSearch}`)
+            server.get(`users?email=${newConvoSearch}`)
             .then((res) => {
-                setConvosList([...convosList, res.data])
+                if (res.status != 200) return
+                setcontactList([...contactList, res.data])
             })
         }
     }
 
-    //gets the existing conversation in order to suggest contacts for a new conversation
-    const updateExistingConvos = () =>{
-        props.chats.map(chat => {
-            if (chat.recipientId){ 
-                // This checks if the conversation is a group chat or a private chat
-                // we only want private chats
-                //we also need to handle search bar
-                if (newConvoSearch.trim === ""){
-                    convosList.push({name: chat.name, id: chat.recipientId})
-                } else if (chat.name.toLowerCase().includes(newConvoSearch.toLowerCase())
-                || chat.recipientId.toLowerCase().includes(newConvoSearch.toLowerCase())) {
-                    convosList.push({name: chat.name, id: chat.recipientId})
-                }
+    const isUserChecked = (user) => {
+        var rtval = false
+        checkedContacts.forEach(checkedUser => {
+            if (JSON.parse(checkedUser).uid == user.uid){
+                rtval = true
             }
         })
-        return convosList
+        return rtval
+    }
+
+    const updateExistingConvos = () =>{
+        var matchSearch = []
+        var uniqueIDs = []
+        props.chats.forEach(chat => {
+            if (chat.recepientId) {
+                server.get(`users?uid=${chat.recepientId}`)
+                .then((res) => {
+                    if (res.status != 200) return
+                    setcontactList([...contactList, res.data])
+                })
+            }
+        })
+        contactList.forEach(user => {
+            if (user.displayName.toLowerCase().includes(newConvoSearch.toLowerCase()) || user.email.toLowerCase().includes(newConvoSearch.toLowerCase()) || isUserChecked(user)){
+                matchSearch.push(user)
+            }
+        })
+        var rtval = []
+        //now we need to remove duplicates before we return
+        matchSearch.map(user => {
+            if (!uniqueIDs.includes(user.uid)){
+                uniqueIDs.push(user.uid)
+                rtval.push(user)
+            }
+        })
+        return rtval
     }
 
     // Handle a checkbox change on the modal to create a new convo
@@ -209,7 +231,7 @@ function Modal(props) {
                             updateExistingConvos()[0] ? updateExistingConvos().map(user => {
                                 return(
                                     <div className='checkListItemWrapper'>
-                                        <input value={user} type="checkbox" className="contactCheckBox" onChange={handleCheck}/>
+                                        <input value={JSON.stringify(user)} type="checkbox" className="contactCheckBox" onChange={handleCheck}/>
                                         <span className='contactItemName'>{user.displayName}</span>
                                         <span className="contactItemId">{user.email}</span>
                                     </div>

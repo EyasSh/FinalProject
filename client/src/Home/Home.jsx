@@ -4,20 +4,30 @@ import Convo from '../Convo/Convo';
 import Nav from '../Nav/Nav';
 import { firebaseApp } from "../DB/FireBaseConf";
 import{getAuth, createUserWithEmailAndPassword, onAuthStateChanged} from "firebase/auth"
+import axios from "axios"
 
 
 function Home(props) {
     const Auth = getAuth(firebaseApp)
     const [isLoading, setIsLoading] = useState(true)
     const navigate = useNavigate()
+    const [authToken, setAuthToken] = useState(null)
 
     // wait for the user data before rendering the page
-    onAuthStateChanged(Auth, (user) => {
+    onAuthStateChanged(Auth, async (user) => {
         setIsLoading(false)
 
         if (!user){
             navigate("/")
+        } else {
+            setAuthToken(await Auth.currentUser.getIdToken())
         }
+    })
+
+    const server = axios.create({
+        baseURL: "http://10.0.0.14:5000/",
+        timeout: "60000",
+        headers: {"Authorization": authToken}
     })
 
     // SAMPLE DATA
@@ -74,7 +84,7 @@ function Home(props) {
         return Auth.currentUser ? (
             <div>
                 
-                <Nav openConvo={setActiveConvo} chats={chats} />
+                <Nav server={server} openConvo={setActiveConvo} chats={chats} />
                 <Convo activeConvo={chats.find(convo => convo.convoID == activeConvo)}/>
                 <Outlet></Outlet>
             </div>

@@ -1,5 +1,5 @@
 .loginInput {
-  
+  color: #248bf5;
   outline: none;
   width: 100%;
   border:none;
@@ -72,7 +72,8 @@ label.psw {
   color: red;
   text-align: center;
 }
-.Logo{
-  width:50%;
+.Login-Logo{
   height: 50%;
+  width: 50%;
+  
 }

@@ -83,7 +83,7 @@ function Login(){
         // if there is a user authenticated redirect him to the app
         return !Auth.currentUser ? (
             <div className="Li-Container">
-                <img className="Logo" src={logo}></img>
+                <img className="Login-Logo" src={logo} alt='eyas login'></img>
                <label>Email</label>
                <input className="loginInput" type={'text'}
                 onChange={(e) => setEmail(e.target.value)}/>

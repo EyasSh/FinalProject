@@ -140,7 +140,7 @@ export default function Nav(props) {
         </div>
 
         {/* Prompts */}
-        {modalOpen ? <Modal setProfPic={setProfPic} profPic={profPic} modalOpen={modalOpen} setModalOpen={setModalOpen} chats={chats} /> : ""}
+        {modalOpen ? <Modal server={props.server} setProfPic={setProfPic} profPic={profPic} modalOpen={modalOpen} setModalOpen={setModalOpen} chats={chats} /> : ""}
       </div>
     );
 }

@@ -8,8 +8,8 @@
 .Submit
 {
     width: 10vw;
-    height: 3vh;
-    margin-top: 5px;
+    height: fit-content+1vh;
+    margin-top: 3%;
     border: #248bf5 1px solid;
     border-radius: 5px;
     background-color: transparent;
@@ -25,6 +25,7 @@
     color: white;
     cursor: pointer;
     background-color: #248bf5;
+    height: fit-content+1vh;
 }
 
 .UserData{
@@ -33,13 +34,14 @@
     align-self:flex-start ;
     outline: none;
     width: 100%;
-   
+    color: #248bf5;
     padding: 5px;
     margin-bottom: 10px;
 }
 .UserData:hover, .UserData:focus{
     border-bottom: #248bf5 3px solid;
     caret-color: #248df5b0;
+    color: #248bf5;
 }
 .UserData::placeholder{
     color: #ffff;
@@ -49,8 +51,19 @@
 {
     position: absolute;
     left: 50%;
-    top: 50%;
+    top: 40%;
     transform: translate(-50%, -50%);
     
     width: 20vw;
+}
+.Back-Arrow{
+    color: #248bf5;
+}
+.Back-Arrow:hover{
+    cursor: pointer;
+}
+.Logo{
+    width: 70%;
+    height: 70%;
+    transform: translateX(25%);
 }

@@ -4,6 +4,7 @@
 *{
     box-sizing: border-box;
 }
+
 .header {
     border-bottom: 4px solid rgb(143, 143, 143);
     padding-bottom: 20px;

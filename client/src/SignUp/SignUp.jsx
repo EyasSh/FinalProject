@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import {Navigate, useNavigate} from 'react-router-dom'
+import {Link, Navigate, useNavigate} from 'react-router-dom'
 import './signup.css'
 import axios from 'axios'
 import { firebaseApp } from "../DB/FireBaseConf";
 import{getAuth, createUserWithEmailAndPassword, onAuthStateChanged, updateProfile   } from "firebase/auth"
 import * as Joi from "joi"
 import logo from "../Assets/Images/Logo.png"
-
+//ant design & images
+import {ArrowLeftOutlined} from '@ant-design/icons'
 
 function SignUp() {
     let Auth=getAuth(firebaseApp);
@@ -93,10 +94,14 @@ function SignUp() {
     if(!isLoading){
         return !Auth.currentUser ? (
             <div className='SuContainer'>
-                
+                <Link to='/'>
+                    <ArrowLeftOutlined className='Back-Arrow' />
+                </Link>
                 <div className='signUpForm'>
-                    <image src='../Assets/Images/Logo.png' />
+                    
                     <h1 className='SignUpHeader'>Sign Up</h1>
+                    <img src={logo} className='Logo' alt='eyas'></img>
+                    <br></br>
                     <label>
                         First Name
                     </label>
