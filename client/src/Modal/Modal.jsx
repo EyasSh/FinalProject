@@ -45,7 +45,7 @@ function Modal(props) {
         if (!error){
             server.get(`users?email=${newConvoSearch}`)
             .then((res) => {
-                if (res.status != 200) return
+                if (res.status != 200 || Auth.currentUser.email == res.data.email) return // we dont want to list ourselves
                 setcontactList([...contactList, res.data])
             })
         }
@@ -65,8 +65,8 @@ function Modal(props) {
         var matchSearch = []
         var uniqueIDs = []
         props.chats.forEach(chat => {
-            if (chat.recepientId) {
-                server.get(`users?uid=${chat.recepientId}`)
+            if (chat.recepientEmail) {
+                server.get(`users?email=${chat.recepientEmail}`)
                 .then((res) => {
                     if (res.status != 200) return
                     setcontactList([...contactList, res.data])
@@ -98,6 +98,11 @@ function Modal(props) {
             updatedList.splice(checkedContacts.indexOf(event.target.value), 1)
         }
         setCheckedContacts(updatedList)
+    }
+
+    const createConvo = (e) => {
+        props.socket.emit("createConvo", Auth.currentUser, checkedContacts)
+        closeModal()
     }
 
     //closes the modal and clears the not needed data
@@ -239,7 +244,7 @@ function Modal(props) {
                             }) : <span>You don't have any contacts</span>
                         }
                     </div>
-                    <button disabled={checkedContacts[0] == null} className="submitModal">Create Conversation</button>
+                    <button disabled={checkedContacts[0] == null} onClick={createConvo} className="submitModal">Create Conversation</button>
                 </div>
             </>
         ),

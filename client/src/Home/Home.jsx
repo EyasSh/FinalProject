@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {Outlet, Navigate, useNavigate} from 'react-router-dom'
 import Convo from '../Convo/Convo';
 import Nav from '../Nav/Nav';
 import { firebaseApp } from "../DB/FireBaseConf";
-import{getAuth, createUserWithEmailAndPassword, onAuthStateChanged} from "firebase/auth"
+import{getAuth, onAuthStateChanged} from "firebase/auth"
 import axios from "axios"
-
+import {socket} from "../Services/socket";
 
 function Home(props) {
     const Auth = getAuth(firebaseApp)
@@ -25,7 +25,7 @@ function Home(props) {
     })
 
     const server = axios.create({
-        baseURL: "http://10.0.0.14:5000/",
+        baseURL: "http://localhost:5000/",
         timeout: "60000",
         headers: {"Authorization": authToken}
     })
@@ -84,8 +84,8 @@ function Home(props) {
         return Auth.currentUser ? (
             <div>
                 
-                <Nav server={server} openConvo={setActiveConvo} chats={chats} />
-                <Convo activeConvo={chats.find(convo => convo.convoID == activeConvo)}/>
+                <Nav socket={socket} server={server} openConvo={setActiveConvo} chats={chats} />
+                <Convo socket={socket} activeConvo={chats.find(convo => convo.convoID == activeConvo)}/>
                 <Outlet></Outlet>
             </div>
         ) : (
