@@ -32,9 +32,7 @@ function SignUp() {
 
     useEffect(() => {
         // Listen for an Enter key press as an alternative for the sign up button
-        const keyDownHandler = event => {
-          console.log('User pressed: ', event.key);
-    
+        const keyDownHandler = event => {    
           if (event.key === 'Enter') {
             event.preventDefault();
             handleSubmit()

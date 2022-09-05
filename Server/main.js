@@ -1,5 +1,5 @@
 const express = require("express")
-const {admin} = require("./DB/firebase-admin")
+const {admin, db} = require("./DB/firebase-admin")
 const cors = require("cors");
 const { createServer } = require("http");
 const {Server} = require("socket.io");
@@ -42,17 +42,47 @@ app.get("/users", checkAuth, (req, res)=> {
 })
 
 //Sockets
+var authSockets = []
 var counter = 0
 io.on("connection", socket => {
     counter++
     console.log(counter)
-    socket.on("createConvo", (user, contacts) => {
-        console.log(user.uid, contacts)
+    socket.on("authenticate", (authToken) => {
+        try {
+            admin.auth().verifyIdToken(authToken)
+            .then(decodedToken => {
+                authSockets[socket.id] = decodedToken.uid
+            })
+            .catch(() => {
+                console.log(`${socket.id} failed to authenticate with a token of value: ${authToken}`)
+            })    
+        } catch (e){console.error(e)}
+    })
+
+    socket.on("createConvo", async (user, contacts) => {
+        if (!authSockets[socket.id]) return socket.emit("exception", {errMsg: "Not Authorized", requestedEvent: "createConvo", data: {contacts}})
+        console.log(authSockets)
+        if (authSockets[socket.id] != user.uid){
+            socket.emit("exception", {errMsg: "Authorization error"})
+            socket.disconnect()
+            return
+            // we close the connection here because someone is trying to manipulate the request
+        }
+        if (contacts.length == 1){
+            contacts[0] = JSON.parse(contacts[0])
+            const convo = db.collection("Conversations").doc(`${contacts[0].uid}--${user.uid}`)
+            await convo.set({
+                user1: contacts[0].uid,
+                user2: user.uid,
+                messages: []
+            })
+        }
     })
 })
 io.on("disconnect", socket => {
     counter--
     console.log(counter)
+    authSockets[socket.id] = null
 })
 // Start server
 httpServer.listen(5000, () => {

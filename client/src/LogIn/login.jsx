@@ -30,9 +30,7 @@ function Login(){
 
     useEffect(() => {
         //Listen for Enter key as an alternative to the Login button click
-        const keyDownHandler = event => {
-          console.log('User pressed: ', event.key);
-    
+        const keyDownHandler = event => {    
           if (event.key === 'Enter') {
             event.preventDefault();
             handleLogin()
