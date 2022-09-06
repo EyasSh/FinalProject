@@ -46,8 +46,17 @@ export default function Nav(props) {
                 <div className="chat" onClick={() => props.openConvo(chat.convoID)}>
                     <img src={chat.picture} alt="" className="profilePic" />
                     <span className='contactName'>{chat.name}</span>
-                    <span className='date'>{format(chat.messages[chat.messages.length -1].createdAt)}</span>
-                    <span className='lastMessage'>{(chat.messages[chat.messages.length -1].fromMe ? "You: " : "") + chat.messages[chat.messages.length -1].content}</span>
+                    {chat.messages[chat.messages.length -1] ?
+                        <>
+                            <span className='date'>{format(chat.messages[chat.messages.length -1].createdAt)}</span>
+                            <span className='lastMessage'>{(chat.messages[chat.messages.length -1].fromMe ? "You: " : "") + chat.messages[chat.messages.length -1].content}</span>
+                        </>
+                    :
+                        <>
+                            <span className='date'>{format(chat.createdAt)}</span>
+                            <span className='lastMessage'>Conversation has been created!</span>
+                        </>
+                    }
                 </div>
             )
         }
@@ -59,8 +68,17 @@ export default function Nav(props) {
                 <div className="chat" onClick={() => props.openConvo(chat.convoID)}>
                     <img src={chat.picture} alt="" className="profilePic" />
                     <span className='contactName'>{chat.name}</span>
-                    <span className='date'>{format(chat.messages[chat.messages.length -1].createdAt)}</span>
-                    <span className='lastMessage'>{(chat.messages[chat.messages.length -1].fromMe ? "You: " : "") + chat.messages[chat.messages.length -1].content}</span>
+                    {chat.messages[chat.messages.length -1] ?
+                        <>
+                            <span className='date'>{format(chat.messages[chat.messages.length -1].createdAt)}</span>
+                            <span className='lastMessage'>{(chat.messages[chat.messages.length -1].fromMe ? "You: " : "") + chat.messages[chat.messages.length -1].content}</span>
+                        </>
+                    :
+                        <>
+                            <span className='date'>{format(chat.createdAt)}</span>
+                            <span className='lastMessage'>Conversation has been created!</span>
+                        </>
+                    }
                 </div>
             )
         }

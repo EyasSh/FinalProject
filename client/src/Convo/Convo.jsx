@@ -34,7 +34,6 @@ function Convo(props) {
                 <>
                     <div className="convoHeader">
                         <img src={props.activeConvo.picture} alt="" className="convoPicture" onClick={() => toggleUserProfile(true)} /><span className="convoName" onClick={() => toggleUserProfile(true)}>{props.activeConvo.name}</span>
-                        <p className='convoUID' >@{props.activeConvo.recipientId}</p> 
                         <div className="convoHeaderBtns">
                             <span id="voiceCallBtn"><PhoneFilled /></span>
                             <span id="videoCallBtn"><VideoCameraFilled /></span>

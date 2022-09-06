@@ -3,7 +3,6 @@ const {admin, db} = require("./DB/firebase-admin")
 const cors = require("cors");
 const { createServer } = require("http");
 const {Server} = require("socket.io");
-const { count } = require("console");
 
 const app = express();
 const httpServer = createServer(app)
@@ -41,8 +40,19 @@ app.get("/users", checkAuth, (req, res)=> {
     }
 })
 
+app.get("/conversations", checkAuth, async (req, res) => {
+    const fsRef = db.collection("Conversations")
+    const data = await fsRef.where("searchTerms", "array-contains", req.uid).get()
+    const result = [] 
+    data.forEach(doc => {
+        result.push(doc.data())
+    })
+    res.status(200).send(result)
+})
+
 //Sockets
 var authSockets = []
+var socketAuths = [] // this is the same as the array above but swapped keys and values
 var counter = 0
 io.on("connection", socket => {
     counter++
@@ -52,6 +62,7 @@ io.on("connection", socket => {
             admin.auth().verifyIdToken(authToken)
             .then(decodedToken => {
                 authSockets[socket.id] = decodedToken.uid
+                socketAuths[decodedToken.uid] = socket
             })
             .catch(() => {
                 console.log(`${socket.id} failed to authenticate with a token of value: ${authToken}`)
@@ -61,7 +72,6 @@ io.on("connection", socket => {
 
     socket.on("createConvo", async (user, contacts) => {
         if (!authSockets[socket.id]) return socket.emit("exception", {errMsg: "Not Authorized", requestedEvent: "createConvo", data: {contacts}})
-        console.log(authSockets)
         if (authSockets[socket.id] != user.uid){
             socket.emit("exception", {errMsg: "Authorization error"})
             socket.disconnect()
@@ -70,12 +80,24 @@ io.on("connection", socket => {
         }
         if (contacts.length == 1){
             contacts[0] = JSON.parse(contacts[0])
-            const convo = db.collection("Conversations").doc(`${contacts[0].uid}--${user.uid}`)
-            await convo.set({
-                user1: contacts[0].uid,
-                user2: user.uid,
-                messages: []
-            })
+            const id = `${contacts[0].uid}--${user.uid}`
+            const convo = db.collection("Conversations").doc(id)
+            const convoConstructor = {
+                convoID: id,
+                searchTerms: [contacts[0].uid, user.uid], // We need this to be able to get the document by ID (firebase doesnt support substrings)
+                members: [
+                    JSON.stringify({uid: contacts[0].uid, publicKey: null, name: contacts[0].displayName, picture: contacts[0].photoURL}),
+                    JSON.stringify({uid: user.uid, publicKey: null, name: user.displayName, picture: user.photoURL})
+                ],
+                messages: [],
+                group: false,
+                createdBy: user.uid,
+                createdAt: Date.now()
+            }
+            await convo.set(convoConstructor)
+            socketAuths[user.uid].emit("createConvo", convoConstructor)
+            if (socketAuths[contacts[0].uid])
+                socketAuths[contacts[0].uid].emit("createConvo", convoConstructor)
         }
     })
 })
