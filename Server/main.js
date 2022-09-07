@@ -46,6 +46,11 @@ app.get("/conversations", checkAuth, async (req, res) => {
     const result = [] 
     data.forEach(doc => {
         result.push(doc.data())
+        if (socketAuths[req.uid]){
+            socketAuths[req.uid].join(doc.data().convoID)
+        } else {
+            console.log("Warning: couldn't join rooms")
+        }
     })
     res.status(200).send(result)
 })
@@ -78,29 +83,37 @@ io.on("connection", socket => {
             return
             // we close the connection here because someone is trying to manipulate the request
         }
-        if (contacts.length == 1){
+        if (contacts.length == 1){ // Private Message
             contacts[0] = JSON.parse(contacts[0])
-            const id = `${contacts[0].uid}--${user.uid}`
+            const participantIds = [contacts[0].uid, user.uid].sort() // we sort the ids alphabetically to prevent duplicate conversations with inverted ids
+            const id = `${participantIds[0]}--${participantIds[1]}`
+
             const convo = db.collection("Conversations").doc(id)
+            const data = await convo.get()
+            if (data.exists) return // convo already exists
             const convoConstructor = {
                 convoID: id,
-                searchTerms: [contacts[0].uid, user.uid], // We need this to be able to get the document by ID (firebase doesnt support substrings)
+                searchTerms: participantIds, // We need this to be able to get the document by ID (firebase doesnt support substrings)
                 members: [
                     JSON.stringify({uid: contacts[0].uid, publicKey: null, name: contacts[0].displayName, picture: contacts[0].photoURL}),
                     JSON.stringify({uid: user.uid, publicKey: null, name: user.displayName, picture: user.photoURL})
                 ],
-                messages: [],
+                messages: [], // this stays as an empty array which is filled up after fetching the messages collection to be sent to the client
                 group: false,
                 createdBy: user.uid,
                 createdAt: Date.now()
             }
             await convo.set(convoConstructor)
             socketAuths[user.uid].emit("createConvo", convoConstructor)
-            if (socketAuths[contacts[0].uid])
+            socket.join(id)
+            if (socketAuths[contacts[0].uid]){
                 socketAuths[contacts[0].uid].emit("createConvo", convoConstructor)
+                socketAuths[contacts[0].uid].join(id)
+            }
         }
     })
 })
+
 io.on("disconnect", socket => {
     counter--
     console.log(counter)

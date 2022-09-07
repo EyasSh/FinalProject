@@ -1,16 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import "./Convo.css"
 import {PhoneFilled, VideoCameraFilled, PaperClipOutlined, AudioTwoTone, RightCircleTwoTone} from '@ant-design/icons';
 import Bubble from '../Bubble/Bubble';
+import { testEncryption } from '../Services/E2E';
 
 //assets
 import chatImg from "../Assets/Images/chat.png"
 
 function Convo(props) {
     const [msgFeild, setMessageFeild] = useState("")
+    const sendBtn = useRef()
 
     const handleMsgChange = e =>{
-        setMessageFeild(e.target.value.trim())
+        setMessageFeild(e.target.value)
     }
 
     const toggleUserProfile = toggle => {
@@ -28,6 +30,30 @@ function Convo(props) {
             name.classList.remove("profileTitle")
         }
     }
+
+    useEffect(() => {
+        //Listen for Enter key as an alternative to the Login button click
+        const keyDownHandler = event => {    
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            if (msgFeild.trim == "") return
+            sendBtn.current.click()
+          }
+        };
+        document.addEventListener('keydown', keyDownHandler);
+    
+        return () => {
+            //cleanup the listener on component unmount
+          document.removeEventListener('keydown', keyDownHandler); // cleanup
+        };
+    }, []);
+
+    const sendMessage = e => {
+        e.preventDefault()
+        if (msgFeild.trim == "") return
+        testEncryption(msgFeild)
+    }
+
     return (
         <div className='convoSection'>
             {props.activeConvo ? 
@@ -53,9 +79,9 @@ function Convo(props) {
                     <div className="convoFooter">
                         <span id="shareFileBtn"><PaperClipOutlined /></span>
                         <input placeholder='Type a message...' type="text" className="msgInput" onChange={handleMsgChange} />
-                        {msgFeild === "" ? 
+                        {msgFeild.trim() === "" ? 
                             <span id="sendVCBtn"><AudioTwoTone twoToneColor={"blue"}/></span>
-                            : <span id="sendMsgBtn"><RightCircleTwoTone twoToneColor={"blue"}/></span>
+                            : <span onClick={sendMessage} id="sendMsgBtn" ref={sendBtn}><RightCircleTwoTone twoToneColor={"blue"}/></span>
                         }
                     </div>
                 </> : 
