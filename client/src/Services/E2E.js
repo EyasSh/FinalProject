@@ -1,4 +1,6 @@
-export const testEncryption = async (initialMessage) => {
+var Buffer = require('buffer/').Buffer  // note: the trailing slash is important!
+
+const testEncryption = async (initialMessage) => {
     const keyPair1 = await generateKeyPair()
     const keyPair2 = await generateKeyPair()
     const derivedKey1 = await deriveKey(keyPair1.publicKeyJwk, keyPair2.privateKeyJwk)
@@ -67,7 +69,7 @@ export const encryptText = async (text, derivedKey) => {
     const encodedText = new TextEncoder().encode(text);
 
     const encryptedData = await window.crypto.subtle.encrypt(
-        { name: "AES-GCM", iv: new TextEncoder().encode("Initialization Vector") },
+        { name: "AES-GCM", iv: new TextEncoder().encode("FNEJJ358F-K4LFOJ339-3DSSDFJR33") },
         derivedKey,
         encodedText
     );
@@ -79,21 +81,18 @@ export const encryptText = async (text, derivedKey) => {
     const base64Data = btoa(string);
 
     return base64Data;
+    console.log(base64Data)
 }
 
-export const decryptText = async (messageJSON, derivedKey) => {
+export const decryptText = async (text, derivedKey) => {
     try {
-        const message = (messageJSON); // add json parse
-        const text = message.base64Data;
-        const initializationVector = new Uint8Array(message.initializationVector).buffer;
-    
         const string = atob(text);
         const uintArray = new Uint8Array(
           [...string].map((char) => char.charCodeAt(0))
         );
         const algorithm = {
           name: "AES-GCM",
-          iv: initializationVector,
+          iv: new TextEncoder().encode("FNEJJ358F-K4LFOJ339-3DSSDFJR33"),
         };
         const decryptedData = await window.crypto.subtle.decrypt(
           algorithm,
@@ -106,3 +105,14 @@ export const decryptText = async (messageJSON, derivedKey) => {
         return `error decrypting message: ${e}`;
     }
 }
+
+var pair = localStorage.getItem("keyPairEyas'sFinal")
+if(!pair){
+    console.log("tsaasa")
+    generateKeyPair()
+    .then(p => {
+        localStorage.setItem("keyPairEyas'sFinal", JSON.stringify(p))
+        pair = p
+    })
+}
+export const keyPair = pair

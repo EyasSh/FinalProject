@@ -6,6 +6,7 @@ import { firebaseApp } from "../DB/FireBaseConf";
 import{getAuth, createUserWithEmailAndPassword, onAuthStateChanged, updateProfile   } from "firebase/auth"
 import * as Joi from "joi"
 import logo from "../Assets/Images/Logo.png"
+import * as E2E from "../Services/E2E"
 //ant design & images
 import {ArrowLeftOutlined} from '@ant-design/icons'
 
@@ -73,11 +74,19 @@ function SignUp() {
                 // make sure there is no authenticated user before signup
                 if (!getAuth().currentUser){
                     let newUser=await createUserWithEmailAndPassword(Auth,email,passwd)
-                    .then((res)=>{
-                      localStorage.setItem("user",JSON.stringify(res.user))
-                    updateProfile(Auth.currentUser, {
-                        displayName: `${fname} ${lname}`
-                      })
+                    .then(async (res)=>{
+                        localStorage.setItem("user",JSON.stringify(res.user))
+                        updateProfile(Auth.currentUser, {
+                            displayName: `${fname} ${lname}`
+                        })
+                        axios.post("http://localhost:5000/pubKey", {
+                            publicKey: JSON.parse(localStorage.getItem("keyPairEyas'sFinal")).publicKeyJwk
+                        },{
+                            headers: {
+                                "Authorization": await Auth.currentUser.getIdToken()
+                            }
+                        })
+
                     })
                     .catch(e=>{
                         console.log(e.message)

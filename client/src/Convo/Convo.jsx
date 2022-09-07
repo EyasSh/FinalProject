@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import "./Convo.css"
 import {PhoneFilled, VideoCameraFilled, PaperClipOutlined, AudioTwoTone, RightCircleTwoTone} from '@ant-design/icons';
 import Bubble from '../Bubble/Bubble';
-import { testEncryption } from '../Services/E2E';
+import * as E2E from "../Services/E2E"
 
 //assets
 import chatImg from "../Assets/Images/chat.png"
@@ -10,6 +10,7 @@ import chatImg from "../Assets/Images/chat.png"
 function Convo(props) {
     const [msgFeild, setMessageFeild] = useState("")
     const sendBtn = useRef()
+    const msgBox = useRef()
 
     const handleMsgChange = e =>{
         setMessageFeild(e.target.value)
@@ -48,10 +49,12 @@ function Convo(props) {
         };
     }, []);
 
-    const sendMessage = e => {
+    const sendMessage = async e => {
         e.preventDefault()
         if (msgFeild.trim == "") return
-        testEncryption(msgFeild)
+        msgBox.current.value = ""
+        const encryptedText = await E2E.encryptText(msgFeild, props.activeConvo.derivedKey)
+        props.socket.emit("sendMessage", props.Auth.currentUser, encryptedText, props.activeConvo.convoID)
     }
 
     return (
@@ -78,7 +81,7 @@ function Convo(props) {
                     </div>
                     <div className="convoFooter">
                         <span id="shareFileBtn"><PaperClipOutlined /></span>
-                        <input placeholder='Type a message...' type="text" className="msgInput" onChange={handleMsgChange} />
+                        <input ref={msgBox} placeholder='Type a message...' type="text" className="msgInput" onChange={handleMsgChange} />
                         {msgFeild.trim() === "" ? 
                             <span id="sendVCBtn"><AudioTwoTone twoToneColor={"blue"}/></span>
                             : <span onClick={sendMessage} id="sendMsgBtn" ref={sendBtn}><RightCircleTwoTone twoToneColor={"blue"}/></span>

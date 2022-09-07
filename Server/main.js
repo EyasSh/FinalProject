@@ -55,6 +55,13 @@ app.get("/conversations", checkAuth, async (req, res) => {
     res.status(200).send(result)
 })
 
+app.post("/pubKey", checkAuth, async (req, res) => {
+    await db.collection("Users").doc(req.uid).set({
+        publicKey: req.body.publicKey
+    })
+    res.sendStatus(200)
+})
+
 //Sockets
 var authSockets = []
 var socketAuths = [] // this is the same as the array above but swapped keys and values
@@ -83,6 +90,7 @@ io.on("connection", socket => {
             return
             // we close the connection here because someone is trying to manipulate the request
         }
+
         if (contacts.length == 1){ // Private Message
             contacts[0] = JSON.parse(contacts[0])
             const participantIds = [contacts[0].uid, user.uid].sort() // we sort the ids alphabetically to prevent duplicate conversations with inverted ids
@@ -95,8 +103,8 @@ io.on("connection", socket => {
                 convoID: id,
                 searchTerms: participantIds, // We need this to be able to get the document by ID (firebase doesnt support substrings)
                 members: [
-                    JSON.stringify({uid: contacts[0].uid, publicKey: null, name: contacts[0].displayName, picture: contacts[0].photoURL}),
-                    JSON.stringify({uid: user.uid, publicKey: null, name: user.displayName, picture: user.photoURL})
+                    JSON.stringify({uid: contacts[0].uid, publicKey: await getPublicKey(contacts[0].uid), name: contacts[0].displayName, picture: contacts[0].photoURL}),
+                    JSON.stringify({uid: user.uid, publicKey: await getPublicKey(user.uid), name: user.displayName, picture: user.photoURL})
                 ],
                 messages: [], // this stays as an empty array which is filled up after fetching the messages collection to be sent to the client
                 group: false,
@@ -112,6 +120,23 @@ io.on("connection", socket => {
             }
         }
     })
+
+    socket.on("sendMessage", async (user, text, convoID) => {
+        if (!authSockets[socket.id]) return socket.emit("exception", {errMsg: "Not Authorized", requestedEvent: "createConvo", data: {contacts}})
+        if (authSockets[socket.id] != user.uid){
+            socket.emit("exception", {errMsg: "Authorization error"})
+            socket.disconnect()
+            return
+            // we close the connection here because someone is trying to manipulate the request
+        }
+        const messageJSON = {
+            content: text,
+            createdAt: Date.now(),
+            sentBy: user.uid
+        }
+        await saveMessage(messageJSON, convoID)
+        io.to(convoID).emit("receiveMessage", messageJSON, convoID)
+    })
 })
 
 io.on("disconnect", socket => {
@@ -119,6 +144,32 @@ io.on("disconnect", socket => {
     console.log(counter)
     authSockets[socket.id] = null
 })
+
+// functions
+const saveMessage = (message, convoID) => {
+    return new Promise((resolve, reject) => {
+      db.collection('Message')
+        .doc(convoID)
+        .collection('Messages')
+        .add(message)
+        .then(function (docRef) {
+          resolve(message)
+        })
+        .catch(function (error) {
+          reject(error)
+        })
+    })
+}
+
+const getPublicKey = async uid => {
+    const docRef = db.collection("Users").doc(uid)
+    const doc = await docRef.get()
+    if (!doc.exists){
+        return console.log("no such document")
+    }
+    console.log(doc.data())
+    return doc.data().publicKey
+}
 // Start server
 httpServer.listen(5000, () => {
     console.log("Server started at port 5000!")
