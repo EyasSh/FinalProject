@@ -7,6 +7,8 @@ import{getAuth, createUserWithEmailAndPassword, onAuthStateChanged, updateProfil
 import * as Joi from "joi"
 import logo from "../Assets/Images/Logo.png"
 import * as E2E from "../Services/E2E"
+import CryptoJS from "crypto-js"
+import {nanoid} from "nanoid"
 //ant design & images
 import {ArrowLeftOutlined} from '@ant-design/icons'
 
@@ -79,17 +81,27 @@ function SignUp() {
                         updateProfile(Auth.currentUser, {
                             displayName: `${fname} ${lname}`
                         })
-                        axios.post("http://localhost:5000/pubKey", {
-                            publicKey: JSON.parse(localStorage.getItem("keyPairEyas'sFinal")).publicKeyJwk
+
+                        // now we create the key pair
+                        const keyPair = await E2E.generateKeyPair()
+                        // we need to encrypt the private key
+                        var ciphertext = CryptoJS.AES.encrypt(JSON.stringify(keyPair.privateKeyJwk), passwd).toString();
+                        //now that the private key is encrypted we send to the server to be saved into the database
+                        axios.post("http://localhost:5000/fetchKeys", {
+                            publicKey: keyPair.publicKeyJwk,
+                            privateKey: ciphertext
                         },{
                             headers: {
                                 "Authorization": await Auth.currentUser.getIdToken()
                             }
                         })
-
+                        localStorage.setItem("keyPairEyas'sFinal", JSON.stringify({
+                            publicKeyJwk: keyPair.publicKeyJwk,
+                            privateKeyJwk: keyPair.privateKeyJwk
+                        }))
                     })
                     .catch(e=>{
-                        console.log(e.message)
+                        console.log(e)
                         setErrMsg("Email already exists!")
                     })      
                 }

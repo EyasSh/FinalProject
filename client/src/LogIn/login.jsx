@@ -63,9 +63,9 @@ function Login(){
                 // if there is no user logged in, log a user in with this data
                 if (!getAuth().currentUser){
                     signInWithEmailAndPassword(Auth, email, passwd)
-                    .then((res)=>{
-                        //save the user in the local storage
-                        localStorage.setItem("user",JSON.stringify(res.user))
+                    .then(async (res)=>{
+                        // we temporarily save the password into the local storage in order to use it when logged in to decrypt the keys
+                        localStorage.setItem("passwdEyas'sFinal", passwd)
                     }).catch(e => setErrMsg("Wrong email or password!"))
                 } else {
                     alert("already authenticated")

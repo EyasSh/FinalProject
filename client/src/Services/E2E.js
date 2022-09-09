@@ -105,14 +105,3 @@ export const decryptText = async (text, derivedKey) => {
         return `error decrypting message: ${e}`;
     }
 }
-
-var pair = localStorage.getItem("keyPairEyas'sFinal")
-if(!pair){
-    console.log("tsaasa")
-    generateKeyPair()
-    .then(p => {
-        localStorage.setItem("keyPairEyas'sFinal", JSON.stringify(p))
-        pair = p
-    })
-}
-export const keyPair = pair

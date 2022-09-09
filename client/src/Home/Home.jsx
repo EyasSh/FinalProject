@@ -8,15 +8,16 @@ import axios from "axios"
 import {socket} from "../Services/socket";
 import defaultPNG from "../Assets/Images/default.png"
 import * as E2E from "../Services/E2E"
+import CryptoJS from "crypto-js";
 
 
 function Home(props) {
     const Auth = getAuth(firebaseApp)
     const [isLoading, setIsLoading] = useState(true)
+    const [authenticated, setAuthenticated] = useState(false)
     const navigate = useNavigate()
     const [authToken, setAuthToken] = useState(null)
     const [chats, setChats] = useState([])
-    const [sentPubKey, setSentPubKey] = useState(false)
 
     const server = axios.create({
         baseURL: "http://localhost:5000/",
@@ -26,16 +27,12 @@ function Home(props) {
 
     // wait for the user data before rendering the page
     onAuthStateChanged(Auth, async (user) => {
-        setIsLoading(false)
-
         if (!user){
             navigate("/")
         } else {
             setAuthToken(await Auth.currentUser.getIdToken())
-            if (!sentPubKey) {
-                server.post("pubKey", {publicKey: JSON.parse(localStorage.getItem("keyPairEyas'sFinal")).publicKeyJwk})
-            }
         }
+        setAuthenticated(true)
     })
 
     const getConvoById = id => {
@@ -48,7 +45,6 @@ function Home(props) {
 
     useEffect(() => {
         socket.on("createConvo", async convo => {
-            console.log("got something")
             convo.members.forEach(member => {
                 member = JSON.parse(member)
                 if (member.uid != Auth.currentUser.uid){
@@ -59,7 +55,6 @@ function Home(props) {
             })
             const privateKey = JSON.parse(localStorage.getItem("keyPairEyas'sFinal")).privateKeyJwk
             convo.derivedKey = await E2E.deriveKey(convo.publicKey, privateKey)
-            console.log(convo.derivedKey)
             // convo.messages.push({
             //     sender: convo.createdBy,
             //     fromMe: false,
@@ -80,7 +75,6 @@ function Home(props) {
 
         socket.on("receiveMessage", async (messageJson, convoID) => {
             const index = getConvoById(convoID)
-            console.log(messageJson)
             if (index == null) return
             const message = {
                 createdAt: messageJson.createdAt,
@@ -94,7 +88,23 @@ function Home(props) {
             setChats(newChats)
         })
 
-        if (!isLoading){
+        if (isLoading && authenticated){
+            const passwd = localStorage.getItem("passwdEyas'sFinal")
+            if (passwd){
+                server.get("fetchKeys")
+                .then(response => {
+                    // before saving the keys into the local storage, we first need to decrypt the private key
+                    const data = response.data.privateKey
+                    var bytes = CryptoJS.AES.decrypt(data, passwd);
+                    // we remove the password from the local storage ASAP
+                    localStorage.removeItem("passwdEyas'sFinal")
+                    var decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+                    localStorage.setItem("keyPairEyas'sFinal", JSON.stringify({
+                        publicKeyJwk: response.data.publicKey,
+                        privateKeyJwk: decryptedData.privateKey
+                    }))
+                })    
+            }
             //Load the existing conversations
             server.get("conversations")
             .then( res => {
@@ -110,7 +120,6 @@ function Home(props) {
 
                     const privateKey = JSON.parse(localStorage.getItem("keyPairEyas'sFinal")).privateKeyJwk
                     convo.derivedKey = await E2E.deriveKey(convo.publicKey, privateKey)
-                    console.log(convo.derivedKey)
                     // Check for duplicates
                     var unique = true
                     chats.forEach(chat => {
@@ -122,6 +131,7 @@ function Home(props) {
                         setChats([...chats, convo]) // this is how you push to a state that is an array
                 })
             })
+            setIsLoading(false)
         }
         return () => {
             socket.off("createConvo")

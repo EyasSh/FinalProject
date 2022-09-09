@@ -55,20 +55,24 @@ app.get("/conversations", checkAuth, async (req, res) => {
     res.status(200).send(result)
 })
 
-app.post("/pubKey", checkAuth, async (req, res) => {
+app.post("/fetchKeys", checkAuth, async (req, res) => {
     await db.collection("Users").doc(req.uid).set({
-        publicKey: req.body.publicKey
+        publicKey: req.body.publicKey,
+        privateKey: req.body.privateKey
     })
     res.sendStatus(200)
+})
+
+app.get("/fetchKeys", checkAuth, async (req, res) => {
+    const doc = await db.collection("Users").doc(req.uid).get()
+    if (!doc.exists) return res.sendStatus(404)
+    res.status(200).send(doc.data())
 })
 
 //Sockets
 var authSockets = []
 var socketAuths = [] // this is the same as the array above but swapped keys and values
-var counter = 0
 io.on("connection", socket => {
-    counter++
-    console.log(counter)
     socket.on("authenticate", (authToken) => {
         try {
             admin.auth().verifyIdToken(authToken)
@@ -140,8 +144,6 @@ io.on("connection", socket => {
 })
 
 io.on("disconnect", socket => {
-    counter--
-    console.log(counter)
     authSockets[socket.id] = null
 })
 
@@ -165,9 +167,8 @@ const getPublicKey = async uid => {
     const docRef = db.collection("Users").doc(uid)
     const doc = await docRef.get()
     if (!doc.exists){
-        return console.log("no such document")
+        return
     }
-    console.log(doc.data())
     return doc.data().publicKey
 }
 // Start server
