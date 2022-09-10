@@ -15,6 +15,7 @@ function Home(props) {
     const Auth = getAuth(firebaseApp)
     const [isLoading, setIsLoading] = useState(true)
     const [authenticated, setAuthenticated] = useState(false)
+    const [keysLoaded, setKeysLoaded] = useState(false)
     const navigate = useNavigate()
     const [authToken, setAuthToken] = useState(null)
     const [chats, setChats] = useState([])
@@ -31,8 +32,8 @@ function Home(props) {
             navigate("/")
         } else {
             setAuthToken(await Auth.currentUser.getIdToken())
+            setAuthenticated(true)
         }
-        setAuthenticated(true)
     })
 
     const getConvoById = id => {
@@ -90,7 +91,7 @@ function Home(props) {
 
         if (isLoading && authenticated){
             const passwd = localStorage.getItem("passwdEyas'sFinal")
-            if (passwd){
+            if (passwd && !keysLoaded){
                 server.get("fetchKeys")
                 .then(response => {
                     // before saving the keys into the local storage, we first need to decrypt the private key
@@ -101,37 +102,44 @@ function Home(props) {
                     var decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
                     localStorage.setItem("keyPairEyas'sFinal", JSON.stringify({
                         publicKeyJwk: response.data.publicKey,
-                        privateKeyJwk: decryptedData.privateKey
+                        privateKeyJwk: decryptedData
                     }))
+                    setKeysLoaded(true)
                 })    
+            } else if (!passwd) { // The password is not available when coming from the signup page
+                // when coming from the sign up page the keys are already set in the localstorage
+                setKeysLoaded(true)
             }
-            //Load the existing conversations
-            server.get("conversations")
-            .then( res => {
-                res.data.forEach(async convo => {
-                    convo.members.forEach(member => {
-                        member = JSON.parse(member)
-                        if (member.uid != Auth.currentUser.uid){
-                            convo.name = member.name
-                            convo.picture = member.picture ? member.picture : defaultPNG
-                            convo.publicKey = member.publicKey
-                        }
-                    })
 
-                    const privateKey = JSON.parse(localStorage.getItem("keyPairEyas'sFinal")).privateKeyJwk
-                    convo.derivedKey = await E2E.deriveKey(convo.publicKey, privateKey)
-                    // Check for duplicates
-                    var unique = true
-                    chats.forEach(chat => {
-                        if (convo.convoID == chat.convoID){
-                            unique = false
-                        }
+            if (keysLoaded) {
+                //Load the existing conversations
+                server.get("conversations")
+                .then( res => {
+                    res.data.forEach(async convo => {
+                        convo.members.forEach(member => {
+                            member = JSON.parse(member)
+                            if (member.uid != Auth.currentUser.uid){
+                                convo.name = member.name
+                                convo.picture = member.picture ? member.picture : defaultPNG
+                                convo.publicKey = member.publicKey
+                            }
+                        })
+
+                        const privateKey = JSON.parse(localStorage.getItem("keyPairEyas'sFinal")).privateKeyJwk
+                        convo.derivedKey = await E2E.deriveKey(convo.publicKey, privateKey)
+                        // Check for duplicates
+                        var unique = true
+                        chats.forEach(chat => {
+                            if (convo.convoID == chat.convoID){
+                                unique = false
+                            }
+                        })
+                        if (unique)
+                            setChats([...chats, convo]) // this is how you push to a state that is an array
                     })
-                    if (unique)
-                        setChats([...chats, convo]) // this is how you push to a state that is an array
+                    setIsLoading(false)
                 })
-            })
-            setIsLoading(false)
+            }
         }
         return () => {
             socket.off("createConvo")

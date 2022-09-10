@@ -24,6 +24,9 @@ function Login(){
         setIsLoading(false)
         if (user){
             // if the user is looged in redirect him to the app
+            // we temporarily save the password into the local storage in order to use it when logged in to decrypt the keys
+            localStorage.clear()
+            localStorage.setItem("passwdEyas'sFinal", passwd)
             navigate("/app")
         }
     })
@@ -63,10 +66,7 @@ function Login(){
                 // if there is no user logged in, log a user in with this data
                 if (!getAuth().currentUser){
                     signInWithEmailAndPassword(Auth, email, passwd)
-                    .then(async (res)=>{
-                        // we temporarily save the password into the local storage in order to use it when logged in to decrypt the keys
-                        localStorage.setItem("passwdEyas'sFinal", passwd)
-                    }).catch(e => setErrMsg("Wrong email or password!"))
+                    .then(async (res)=>{}).catch(e => setErrMsg("Wrong email or password!"))
                 } else {
                     alert("already authenticated")
                 }

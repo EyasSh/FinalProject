@@ -77,6 +77,7 @@ function SignUp() {
                 if (!getAuth().currentUser){
                     let newUser=await createUserWithEmailAndPassword(Auth,email,passwd)
                     .then(async (res)=>{
+                        localStorage.clear()
                         localStorage.setItem("user",JSON.stringify(res.user))
                         updateProfile(Auth.currentUser, {
                             displayName: `${fname} ${lname}`
