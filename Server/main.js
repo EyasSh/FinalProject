@@ -3,6 +3,7 @@ const {admin, db} = require("./DB/firebase-admin")
 const cors = require("cors");
 const { createServer } = require("http");
 const {Server} = require("socket.io");
+const { QuerySnapshot } = require("firebase-admin/firestore");
 
 const app = express();
 const httpServer = createServer(app)
@@ -41,17 +42,35 @@ app.get("/users", checkAuth, (req, res)=> {
 })
 
 app.get("/conversations", checkAuth, async (req, res) => {
-    const fsRef = db.collection("Conversations")
-    const data = await fsRef.where("searchTerms", "array-contains", req.uid).get()
+    const cnovoRef = db.collection("Conversations")
+    const data = await cnovoRef.where("searchTerms", "array-contains", req.uid).get()
     const result = [] 
-    data.forEach(doc => {
-        result.push(doc.data())
+    
+    // we need to convert the "data" variable to an array
+    // because its a custom type made by firebase
+    const dataArray = []
+    data.forEach(sample => dataArray.push(sample))
+    for (const doc of dataArray ){
+        var convo = doc.data()
         if (socketAuths[req.uid]){
-            socketAuths[req.uid].join(doc.data().convoID)
+            socketAuths[req.uid].join(convo.convoID)
         } else {
             console.log("Warning: couldn't join rooms")
         }
-    })
+
+        const msgData = await db.collection("Message")
+        .doc(convo.convoID)
+        .collection("Messages")
+        .orderBy("createdAt")
+        .get()
+        msgData.docs.forEach(msg => {
+            msg = msg.data()
+            if (msg) convo.messages.push(msg)
+        })
+        result.push(convo)
+
+    }
+
     res.status(200).send(result)
 })
 
@@ -136,10 +155,11 @@ io.on("connection", socket => {
         const messageJSON = {
             content: text,
             createdAt: Date.now(),
-            sentBy: user.uid
+            sentBy: user.uid,
+            convoID: convoID
         }
         await saveMessage(messageJSON, convoID)
-        io.to(convoID).emit("receiveMessage", messageJSON, convoID)
+        io.to(convoID).emit("receiveMessage", messageJSON)
     })
 })
 

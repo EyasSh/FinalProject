@@ -74,8 +74,8 @@ function Home(props) {
                 setChats([...chats, convo]) // this is how you push to a state that is an array
         })
 
-        socket.on("receiveMessage", async (messageJson, convoID) => {
-            const index = getConvoById(convoID)
+        socket.on("receiveMessage", async (messageJson) => {
+            const index = getConvoById(messageJson.convoID)
             if (index == null) return
             const message = {
                 createdAt: messageJson.createdAt,
@@ -127,6 +127,15 @@ function Home(props) {
 
                         const privateKey = JSON.parse(localStorage.getItem("keyPairEyas'sFinal")).privateKeyJwk
                         convo.derivedKey = await E2E.deriveKey(convo.publicKey, privateKey)
+                        convo.messages.forEach(async (msg, msgIndex) => {
+                            const message = {
+                                createdAt: msg.createdAt,
+                                content: await E2E.decryptText(msg.content, convo.derivedKey),
+                                sender: msg.sentBy
+                            }
+                            convo.messages[msgIndex] = message
+                        })
+
                         // Check for duplicates
                         var unique = true
                         chats.forEach(chat => {
