@@ -1,9 +1,16 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import "./Bubble.css"
 function Bubble(props) {
 
     const activeChat = props.activeChat
+    const bottomRef = useRef()
+    const scrollToBottom = () => {
+        document.querySelector(".bubbleWrapper").scrollTop = document.querySelector(".bubbleWrapper").scrollHeight
+    }
 
+    useEffect(() => {
+        scrollToBottom()
+    })
 
     return (
         <div className='bubbleWrapper'>
@@ -19,6 +26,7 @@ function Bubble(props) {
             {activeChat.messages.map( msg => {
                 return <p className={msg.fromMe ? "from-me" : "from-them"}>{msg.content}</p>
             })}
+            <div ref={bottomRef}></div>
         </div>
     );
 }

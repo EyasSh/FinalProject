@@ -26,7 +26,9 @@ function Login(){
             // if the user is looged in redirect him to the app
             // we temporarily save the password into the local storage in order to use it when logged in to decrypt the keys
             localStorage.clear()
-            localStorage.setItem("passwdEyas'sFinal", passwd)
+            if (passwd.trim()){
+                localStorage.setItem("passwdEyas'sFinal", passwd)
+            }
             navigate("/app")
         }
     })

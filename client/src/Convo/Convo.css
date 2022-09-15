@@ -70,7 +70,6 @@
 .bubblesWrapper{
     width: 100%;
     height: 100%;
-    padding-bottom: 100px;
 }
 
 .convoFooter {
@@ -109,11 +108,17 @@
 
 #shareFileBtn{
     margin-left: 30px;
+    cursor: pointer;
 }
 
 #sendVCBtn,
 #sendMsgBtn{
     margin-right: 30px;
+}
+
+#sendVCBtn:hover,
+#sendMsgBtn:hover {
+    cursor: pointer;
 }
 
 .noConvoSelected {

@@ -1,0 +1,35 @@
+.spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100px;
+    height: 100px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 10px solid rgba(0, 0, 255, 0.048);
+    z-index: 101;
+}
+
+#layer2 {
+    border-top: 10px solid blue;
+    animation: rotate 1.5s linear infinite;
+}
+
+#layer3 {
+    border-bottom: 10px solid #248bf5;
+    animation: rotate 1s linear infinite;
+}
+
+#layer4 {
+    border-left: 10px solid aqua;
+    animation: rotate 2s linear infinite;
+}
+
+@keyframes rotate {
+    from {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}

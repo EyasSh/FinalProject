@@ -9,6 +9,7 @@ import {socket} from "../Services/socket";
 import defaultPNG from "../Assets/Images/default.png"
 import * as E2E from "../Services/E2E"
 import CryptoJS from "crypto-js";
+import Spinner from '../Spinner/Spinner';
 
 
 function Home(props) {
@@ -35,7 +36,10 @@ function Home(props) {
             setAuthenticated(true)
         }
     })
-
+    const signOut = () => {
+        localStorage.clear()
+        Auth.signOut()
+    }
     const getConvoById = id => {
         var rtval;
         chats.forEach((chat, index) => {
@@ -108,7 +112,12 @@ function Home(props) {
                 })    
             } else if (!passwd) { // The password is not available when coming from the signup page
                 // when coming from the sign up page the keys are already set in the localstorage
-                setKeysLoaded(true)
+                if (JSON.parse(localStorage.getItem("keyPairEyas'sFinal"))) {
+                    setKeysLoaded(true)
+                } else {
+                    // The user has to re-enter the password
+                    signOut()
+                }
             }
 
             if (keysLoaded) {
@@ -147,6 +156,8 @@ function Home(props) {
                             setChats([...chats, convo]) // this is how you push to a state that is an array
                     })
                     setIsLoading(false)
+                }).catch(e => {
+                    signOut()
                 })
             }
         }
@@ -168,7 +179,6 @@ function Home(props) {
     if (!isLoading){
         return Auth.currentUser ? (
             <div>
-                
                 <Nav socket={socket} server={server} openConvo={setActiveConvo} chats={chats} />
                 <Convo Auth={Auth} socket={socket} activeConvo={chats.find(convo => convo.convoID == activeConvo)}/>
                 <Outlet></Outlet>
@@ -177,7 +187,7 @@ function Home(props) {
             <Navigate to="/"/>
         )    
     } else {
-        return ""
+        return <Spinner />
     }
 }
 

@@ -53,7 +53,8 @@
     color: white;
 }
 
-.convoModalSearchBar {
+.convoModalSearchBar,
+.fileTextFeild {
     font-size: 17px;
     width: 70%;
     padding: 5px;
@@ -64,7 +65,9 @@
 }
 
 .convoModalSearchBar:hover,
-.convoModalSearchBar:focus {
+.convoModalSearchBar:focus,
+.fileTextFeild:hover,
+.fileTextFeild:focus {
     border-bottom: 2px solid #1a5ea1;
 }
 
@@ -159,7 +162,8 @@
     right: 20px;
 }
 
-.saveEp{
+.saveEp,
+.sendFile {
     margin-left: 5px;
     border: 2px solid #248bf5;
     background-color: transparent;
@@ -170,18 +174,21 @@
     transition: all 200ms ease;
 }
 
-.saveEp:hover {
+.saveEp:hover,
+.sendFile:hover {
     color: white;
     background-color: #248bf5;
 }
 
 .saveEp:disabled,
-.removeProfilePic:disabled {
+.removeProfilePic:disabled,
+.sendFile:disabled {
     pointer-events: none;
     cursor: not-allowed;
 }
 
-.removeProfilePic {
+.removeProfilePic,
+.cancelSendFile {
     border: 2px solid red;
     background-color: transparent;
     outline: none;
@@ -191,7 +198,24 @@
     transition: all 200ms ease;
 }
 
-.removeProfilePic:hover {
+.removeProfilePic:hover,
+.cancelSendFile:hover {
     color: white;
     background-color: red;
+}
+
+.sfTitle {
+    margin-top: 10px;
+}
+
+.sendFileBtns{
+    display: flex;
+    margin-top: 10px;
+    justify-content: flex-end;
+}
+
+.sendFileImage{
+    margin-top: 10px;
+    max-width: 300px;
+    max-height: 250px;
 }

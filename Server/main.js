@@ -67,6 +67,15 @@ app.get("/conversations", checkAuth, async (req, res) => {
             msg = msg.data()
             if (msg) convo.messages.push(msg)
         })
+        
+        //update member profiles
+        for (const member in convo.members){
+            const curr = JSON.parse(convo.members[member])
+            const user = await admin.auth().getUser(curr.uid)
+            curr.name = user.displayName
+            curr.photoURL = user.photoURL
+            convo.members[member] = JSON.stringify(curr)
+        }
         result.push(convo)
 
     }

@@ -1,6 +1,7 @@
 import {React, useRef, useState} from 'react';
-import MD5 from "crypto-js/md5"
 import * as Joi from "joi"
+import { uploadFile } from '../Services/misc';
+import Spinner from "../Spinner/Spinner"
 
 //css
 import "./Modal.css"
@@ -12,7 +13,6 @@ import defaultPNG from "../Assets/Images/default.png"
 //firebase
 import { firebaseApp } from "../DB/FireBaseConf";
 import {getAuth, updateProfile} from "firebase/auth"
-import {getStorage, ref, getDownloadURL, uploadBytesResumable} from "firebase/storage"
 
 
 function Modal(props) {
@@ -23,12 +23,17 @@ function Modal(props) {
 
     // edit profile modal states
     const Auth = getAuth(firebaseApp)
-    const Storage = getStorage(firebaseApp)
     const [epPhoto, setEpPhoto] = useState(props.profPic) // this state is to change the preview image before submitting the edit
     const inputImage = useRef(null)
     const [dname, setDname] = useState(Auth.currentUser.displayName)
     const epPrevImg = useRef(null)
     const allowedImgTypes = ["image/png", "image/jpg", "image/jpeg"]
+
+    //send file modal states
+    const fileTextFeild = useRef()
+    const selectedImage = useRef()
+    const [selectedFile, setSelectedFile] = useState(null)
+    const [uploading, setUploading] = useState(false)
 
     const server = props.server
 
@@ -118,10 +123,6 @@ function Modal(props) {
     // updates the preview image when the user selects a file for their profile pic
     const previewImage = (e) => {
         if (e.target.files[0]){
-            if (e.target.files[0].size > 8000000){
-                e.target.files = []
-                return alert("Can't upload a file larger than 8MB")
-            }
             if (!allowedImgTypes.includes(e.target.files[0].type)){
                 e.target.files = []
                 return alert("Unsupported type")
@@ -153,73 +154,58 @@ function Modal(props) {
         closeModal()
     }
 
-    //calculates the MD5 hash of a string
-    const getMD5 = async (file) => {
-        const reader = new FileReader()
-        var hashMD5 = null
-        reader.onload = function(e){
-            hashMD5 = MD5(e.target.result)
-        }
-        reader.readAsBinaryString(file)
-        while (hashMD5 == null){
-            await sleep(100)
-        } 
-        return hashMD5
-    }
-
-    // a sleep function
-    function sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
     // TODO: Move this function to a util folder and only return the download link
-    const updateProfPic = async src => {
-        if (!src) return
-        // we name the file with its md5 hash to prevent file duplicates
-        const storageRef = ref(Storage, `${Auth.currentUser.uid}/${await getMD5(src)}`) // the second argument is the path to the file in firebase
-        getDownloadURL(storageRef)
+    const updateProfPic = src => {
+        uploadFile(src, `profilePics/${Auth.currentUser.uid}`)
         .then(url => {
-            //no need to upload
-            console.log(`File Exists at: ${url}`)
+            props.setProfPic(url)
             updateProfile(Auth.currentUser, {
                 photoURL: url
             })
-            .then (() => {
-                props.setProfPic(Auth.currentUser.photoURL)
-            })
         })
-        .catch(() => {
-            //an error means the file needs to be uploaded
-            const uploadTask = uploadBytesResumable(storageRef, src)
+        .catch(e => alert(e))
+    }
 
-            uploadTask.on('state_changed', 
-            (snapshot) => {
-                // Observe state change events such as progress, pause, and resume
-                // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
-                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                console.log('Upload is ' + progress + '% done');
-            }, 
-            (error) => {
-                // Handle unsuccessful uploads
-            }, 
-            () => {
-                    // Handle successful uploads on complete
-                    // For instance, get the download URL: https://firebasestorage.googleapis.com/...
-                    getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-                    console.log('File available at', downloadURL);
-                    props.setProfPic(downloadURL)
-                    updateProfile(Auth.currentUser, {
-                        photoURL: downloadURL
-                    })
-                });
-            });    
-        })
+    const handleFileSelection = e => {
+        e.preventDefault()
+        if (!e.target.files[0]) {
+            selectedImage.current.src = ""
+            selectedImage.current.classList.add("hidden")
+            return
+        }
+        const file = e.target.files[0]
+        setSelectedFile(file)
+        if (allowedImgTypes.includes(file.type)){
+            var reader = new FileReader()
+            reader.onload = function(e) {
+                selectedImage.current.src = e.target.result
+                selectedImage.current.classList.remove("hidden")
+            }
+            reader.readAsDataURL(e.target.files[0])
+        } else {
+            selectedImage.current.src = ""
+            selectedImage.current.classList.add("hidden")
+        }
+    }
+
+    const sendFile = e => {
+        e.preventDefault()
+        if (selectedFile) {
+            const modal = document.querySelector(".modal")
+            setUploading(true)
+            uploadFile(selectedFile, `chatFiles/${props.convo.convoID}`)
+            .then(url => {
+                console.log(url)
+                closeModal()
+                setUploading(false)
+            })
+        }
     }
 
     // Modal types
     //TODO: Add an incoming call modal
     const modals = {
-        "newConvo": (
+        "newConvo": props.modalOpen == "newConvo" ? (
             <>
                 <div className="modal" style={{
                     width: "500px",
@@ -247,9 +233,9 @@ function Modal(props) {
                     <button disabled={checkedContacts[0] == null} onClick={createConvo} className="submitModal">Create Conversation</button>
                 </div>
             </>
-        ),
+        ) : null,
 
-        "editProfile": (
+        "editProfile": props.modalOpen == "editProfile" ? (
             <>
                 <div className="modal" style={{
                     width: "400px",
@@ -279,9 +265,29 @@ function Modal(props) {
 
                 </div>
             </>
-        ),
-    }
+        ) : null,
 
+        "sendFile": props.modalOpen == "sendFile" ?  (
+            <>
+            { uploading ? <Spinner /> :
+                <div className="modal" style={{
+                    width: "400px",
+                    height: "fit-content"
+                }}>
+                    <span className="exitBtn" onClick={closeModal}>x</span>
+                    <h3 className='sfTitle'>Send a file to {props.convo.name}</h3>
+                    <input onChange={handleFileSelection} type="file" className="sendFileModalInput" />
+                    <input placeholder='Write a message... (Optional)' ref={fileTextFeild} type="text" className='fileTextFeild' />
+                    <img ref={selectedImage} src="" alt="" className='sendFileImage hidden'/>
+                    <div className="sendFileBtns">
+                        <button className="cancelSendFile" onClick={closeModal}>Cancel</button>
+                        <button disabled={!selectedFile} className="sendFile" onClick={sendFile}>Send</button>
+                    </div>
+                </div>
+            }
+            </>
+        ) : null
+    }
     return (
         <div>
             <div className='modalOverlay' onClick={closeModal}></div>
