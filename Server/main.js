@@ -30,6 +30,7 @@ const checkAuth = (req, res, next) => {
 }
 
 app.get("/users", checkAuth, (req, res)=> {
+    console.log(req)
     if (req.query.email) {
         admin.auth().getUserByEmail(req.query.email)
         .then(user => {
@@ -42,6 +43,7 @@ app.get("/users", checkAuth, (req, res)=> {
 })
 
 app.get("/conversations", checkAuth, async (req, res) => {
+    console.log(req)
     const cnovoRef = db.collection("Conversations")
     const data = await cnovoRef.where("searchTerms", "array-contains", req.uid).get()
     const result = [] 
@@ -84,6 +86,7 @@ app.get("/conversations", checkAuth, async (req, res) => {
 })
 
 app.post("/fetchKeys", checkAuth, async (req, res) => {
+    console.log(req)
     await db.collection("Users").doc(req.uid).set({
         publicKey: req.body.publicKey,
         privateKey: req.body.privateKey
@@ -92,6 +95,7 @@ app.post("/fetchKeys", checkAuth, async (req, res) => {
 })
 
 app.get("/fetchKeys", checkAuth, async (req, res) => {
+    console.log(req)
     const doc = await db.collection("Users").doc(req.uid).get()
     if (!doc.exists) return res.sendStatus(404)
     res.status(200).send(doc.data())
@@ -153,22 +157,27 @@ io.on("connection", socket => {
         }
     })
 
-    socket.on("sendMessage", async (user, text, convoID) => {
-        if (!authSockets[socket.id]) return socket.emit("exception", {errMsg: "Not Authorized", requestedEvent: "createConvo", data: {contacts}})
-        if (authSockets[socket.id] != user.uid){
-            socket.emit("exception", {errMsg: "Authorization error"})
-            socket.disconnect()
-            return
-            // we close the connection here because someone is trying to manipulate the request
+    socket.on("sendMessage", async (user, text, convoID, attatchment) => {
+        try {
+            if (!authSockets[socket.id]) return socket.emit("exception", {errMsg: "Not Authorized", requestedEvent: "createConvo", data: {contacts}})
+            if (authSockets[socket.id] != user.uid){
+                socket.emit("exception", {errMsg: "Authorization error"})
+                socket.disconnect()
+                return
+                // we close the connection here because someone is trying to manipulate the request
+            }
+            const messageJSON = {
+                content: text,
+                attatchment: attatchment || 0, // The content and the url are both encrypted by the user
+                createdAt: Date.now(),
+                sentBy: user.uid,
+                convoID: convoID
+            }
+            await saveMessage(messageJSON, convoID)
+            io.to(convoID).emit("receiveMessage", messageJSON)
+        } catch (e) {
+            console.log(`An error occured: ${e}`)
         }
-        const messageJSON = {
-            content: text,
-            createdAt: Date.now(),
-            sentBy: user.uid,
-            convoID: convoID
-        }
-        await saveMessage(messageJSON, convoID)
-        io.to(convoID).emit("receiveMessage", messageJSON)
     })
 })
 

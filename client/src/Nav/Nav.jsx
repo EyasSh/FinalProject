@@ -39,6 +39,20 @@ export default function Nav(props) {
     // Get the chats and render all of the ones that match the search
     const chatsJSX = []
     const chats = props.chats
+    const getChatString = (index) => {
+        const chat = chats[index]
+        const lastMsg = chat.messages[chat.messages.length -1]
+        var str = ""
+        if (lastMsg.attatchment){
+            if (props.allowedImgTypes.includes(lastMsg.attatchment.data?.type)){
+                str += "📷"
+            } else {
+                str += "📄"
+            }
+        }
+        str += ` ${lastMsg.content}`
+        return str
+    }
     if (searchFeild.trim() === "") {
         for (let index = 0; index < chats.length; index++) {
             const chat = chats[index];
@@ -49,7 +63,7 @@ export default function Nav(props) {
                     {chat.messages[chat.messages.length -1] ?
                         <>
                             <span className='date'>{format(chat.messages[chat.messages.length -1].createdAt)}</span>
-                            <span className='lastMessage'>{(chat.messages[chat.messages.length -1].fromMe ? "You: " : "") + chat.messages[chat.messages.length -1].content}</span>
+                            <span className='lastMessage'>{(chat.messages[chat.messages.length -1].fromMe ? "You: " : "") + getChatString(index)}</span>
                         </>
                     :
                         <>
@@ -71,7 +85,7 @@ export default function Nav(props) {
                     {chat.messages[chat.messages.length -1] ?
                         <>
                             <span className='date'>{format(chat.messages[chat.messages.length -1].createdAt)}</span>
-                            <span className='lastMessage'>{(chat.messages[chat.messages.length -1].fromMe ? "You: " : "") + chat.messages[chat.messages.length -1].content}</span>
+                            <span className='lastMessage'>{(chat.messages[chat.messages.length -1].fromMe ? "You: " : "") + getChatString(index)}</span>
                         </>
                     :
                         <>
@@ -158,7 +172,7 @@ export default function Nav(props) {
         </div>
 
         {/* Prompts */}
-        {modalOpen ? <Modal socket={props.socket} server={props.server} setProfPic={setProfPic} profPic={profPic} modalOpen={modalOpen} setModalOpen={setModalOpen} chats={chats} /> : ""}
+        {modalOpen ? <Modal allowedImgTypes={props.allowedImgTypes} socket={props.socket} server={props.server} setProfPic={setProfPic} profPic={profPic} modalOpen={modalOpen} setModalOpen={setModalOpen} chats={chats} /> : ""}
       </div>
     );
 }

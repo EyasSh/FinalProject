@@ -20,6 +20,7 @@ function Home(props) {
     const navigate = useNavigate()
     const [authToken, setAuthToken] = useState(null)
     const [chats, setChats] = useState([])
+    const allowedImgTypes = ["image/png", "image/jpg", "image/jpeg"]
 
     const server = axios.create({
         baseURL: "http://localhost:5000/",
@@ -84,6 +85,7 @@ function Home(props) {
             const message = {
                 createdAt: messageJson.createdAt,
                 content: await E2E.decryptText(messageJson.content, chats[index].derivedKey),
+                attatchment: await E2E.decryptText(messageJson.attatchment, chats[index].derivedKey),
                 sender: messageJson.sentBy
             }
             const convo = chats[index]
@@ -140,6 +142,7 @@ function Home(props) {
                             const message = {
                                 createdAt: msg.createdAt,
                                 content: await E2E.decryptText(msg.content, convo.derivedKey),
+                                attatchment: await E2E.decryptText(msg.attatchment, convo.derivedKey),
                                 sender: msg.sentBy
                             }
                             convo.messages[msgIndex] = message
@@ -179,8 +182,8 @@ function Home(props) {
     if (!isLoading){
         return Auth.currentUser ? (
             <div>
-                <Nav socket={socket} server={server} openConvo={setActiveConvo} chats={chats} />
-                <Convo Auth={Auth} socket={socket} activeConvo={chats.find(convo => convo.convoID == activeConvo)}/>
+                <Nav allowedImgTypes={allowedImgTypes} socket={socket} server={server} openConvo={setActiveConvo} chats={chats} />
+                <Convo allowedImgTypes={allowedImgTypes} Auth={Auth} socket={socket} activeConvo={chats.find(convo => convo.convoID == activeConvo)}/>
                 <Outlet></Outlet>
             </div>
         ) : (

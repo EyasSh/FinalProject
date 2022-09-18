@@ -55,18 +55,15 @@ function Convo(props) {
         e.preventDefault()
         if (msgFeild.trim == "") return
         msgBox.current.value = ""
+        setMessageFeild("")
         const encryptedText = await E2E.encryptText(msgFeild, props.activeConvo.derivedKey)
         props.socket.emit("sendMessage", props.Auth.currentUser, encryptedText, props.activeConvo.convoID)
     }
 
-    const sendAttatchmentMessage = async msgData => {
-        if (!msgData.attatchment) return "No attatchment was provided"
-        const attatchment = await E2E.encryptText(msgData.attatchment)
-        const encryptedText = ""
-        if (msgData.text.trim()){
-            encryptedText = await E2E.encryptText(msgData.text)
-        }
-        //TODO: Emit socket
+    const openFileModal = () => {
+        setModalOpen("sendFile")
+        msgBox.current.value = ""
+        setMessageFeild("")
     }
 
     return (
@@ -84,8 +81,8 @@ function Convo(props) {
                         {
                             props.activeConvo ? 
                             <>
-                                <Bubble activeChat={props.activeConvo}/>
-                                {modalOpen ? <Modal modalOpen={modalOpen} setModalOpen={setModalOpen} sendAttatchmentMessage={sendAttatchmentMessage} convo={props.activeConvo}/> : ""}
+                                <Bubble allowedImgTypes={props.allowedImgTypes} activeChat={props.activeConvo}/>
+                                {modalOpen ? <Modal allowedImgTypes={props.allowedImgTypes} socket={props.socket} Auth={props.Auth} modalOpen={modalOpen} setModalOpen={setModalOpen} convo={props.activeConvo}/> : ""}
                             </>
                             :
                             <div className="noConvoSelected">
@@ -96,7 +93,7 @@ function Convo(props) {
                         }
                     </div>
                     <div className="convoFooter">
-                        <span id="shareFileBtn" onClick={() => setModalOpen("sendFile")}><PaperClipOutlined /></span>
+                        <span id="shareFileBtn" onClick={openFileModal}><PaperClipOutlined /></span>
                         <input ref={msgBox} placeholder='Type a message...' type="text" className="msgInput" onChange={handleMsgChange} />
                         {msgFeild.trim() === "" ? 
                             <span id="sendVCBtn"><AudioTwoTone twoToneColor={"blue"}/></span>

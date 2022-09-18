@@ -2,6 +2,7 @@ import {React, useRef, useState} from 'react';
 import * as Joi from "joi"
 import { uploadFile } from '../Services/misc';
 import Spinner from "../Spinner/Spinner"
+import { decryptText, encryptText } from '../Services/E2E';
 
 //css
 import "./Modal.css"
@@ -27,10 +28,9 @@ function Modal(props) {
     const inputImage = useRef(null)
     const [dname, setDname] = useState(Auth.currentUser.displayName)
     const epPrevImg = useRef(null)
-    const allowedImgTypes = ["image/png", "image/jpg", "image/jpeg"]
 
     //send file modal states
-    const fileTextFeild = useRef()
+    const [fileTextFeild, setFileTextFeild] = useState("")
     const selectedImage = useRef()
     const [selectedFile, setSelectedFile] = useState(null)
     const [uploading, setUploading] = useState(false)
@@ -123,7 +123,7 @@ function Modal(props) {
     // updates the preview image when the user selects a file for their profile pic
     const previewImage = (e) => {
         if (e.target.files[0]){
-            if (!allowedImgTypes.includes(e.target.files[0].type)){
+            if (!props.allowedImgTypes.includes(e.target.files[0].type)){
                 e.target.files = []
                 return alert("Unsupported type")
             }
@@ -175,7 +175,7 @@ function Modal(props) {
         }
         const file = e.target.files[0]
         setSelectedFile(file)
-        if (allowedImgTypes.includes(file.type)){
+        if (props.allowedImgTypes.includes(file.type)){
             var reader = new FileReader()
             reader.onload = function(e) {
                 selectedImage.current.src = e.target.result
@@ -191,12 +191,28 @@ function Modal(props) {
     const sendFile = e => {
         e.preventDefault()
         if (selectedFile) {
-            const modal = document.querySelector(".modal")
             setUploading(true)
             uploadFile(selectedFile, `chatFiles/${props.convo.convoID}`)
-            .then(url => {
-                console.log(url)
+            .then(async url => {
                 closeModal()
+                var txtMsg = fileTextFeild.trim() ? fileTextFeild : ""
+                txtMsg = await encryptText(txtMsg, props.convo.derivedKey)
+                const fileObject = {
+                    url: url,
+                    data: {
+                        size: selectedFile.size,
+                        type: selectedFile.type,
+                        name: selectedFile.name
+                    }
+                }
+                console.log(fileObject)
+                const encryptedFile = await encryptText(JSON.stringify(fileObject), props.convo.derivedKey)
+                console.log(await decryptText(encryptedFile, props.convo.derivedKey))
+                props.socket.emit("sendMessage", props.Auth.currentUser, txtMsg, props.convo.convoID, encryptedFile)
+                setUploading(false)
+            })
+            .catch(e => {
+                console.log(e)
                 setUploading(false)
             })
         }
@@ -277,7 +293,7 @@ function Modal(props) {
                     <span className="exitBtn" onClick={closeModal}>x</span>
                     <h3 className='sfTitle'>Send a file to {props.convo.name}</h3>
                     <input onChange={handleFileSelection} type="file" className="sendFileModalInput" />
-                    <input placeholder='Write a message... (Optional)' ref={fileTextFeild} type="text" className='fileTextFeild' />
+                    <input placeholder='Write a message... (Optional)' onChange={(e) => setFileTextFeild(e.target.value)} type="text" className='fileTextFeild' />
                     <img ref={selectedImage} src="" alt="" className='sendFileImage hidden'/>
                     <div className="sendFileBtns">
                         <button className="cancelSendFile" onClick={closeModal}>Cancel</button>
