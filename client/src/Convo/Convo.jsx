@@ -34,6 +34,20 @@ function Convo(props) {
         }
     }
 
+    const toggleVoiceUI = toggle => {
+        const voiceMessagBtn = document.getElementById("sendVCBtn")
+
+        if (toggle) {
+            voiceMessagBtn.classList.add("hidden")
+        } else {
+            voiceMessagBtn.classList.remove("hidden")
+        }
+    }
+
+    const startVoiceMsg = () => {
+        toggleVoiceUI(true)
+    }
+
     useEffect(() => {
         //Listen for Enter key as an alternative to the Login button click
         const keyDownHandler = event => {    
@@ -71,7 +85,7 @@ function Convo(props) {
             {props.activeConvo ? 
                 <>
                     <div className="convoHeader">
-                        <img src={props.activeConvo.picture} alt="" className="convoPicture" onClick={() => toggleUserProfile(true)} /><span className="convoName" onClick={() => toggleUserProfile(true)}>{props.activeConvo.name}</span>
+                        <img src={props.activeConvo.picture} alt="" className="convoPicture" /><span className="convoName" onClick={() => toggleUserProfile(true)}>{props.activeConvo.name}</span>
                         <div className="convoHeaderBtns">
                             <span id="voiceCallBtn"><PhoneFilled /></span>
                             <span id="videoCallBtn"><VideoCameraFilled /></span>
@@ -96,7 +110,7 @@ function Convo(props) {
                         <span id="shareFileBtn" onClick={openFileModal}><PaperClipOutlined /></span>
                         <input ref={msgBox} placeholder='Type a message...' type="text" className="msgInput" onChange={handleMsgChange} />
                         {msgFeild.trim() === "" ? 
-                            <span id="sendVCBtn"><AudioTwoTone twoToneColor={"blue"}/></span>
+                            <span onClick={startVoiceMsg} id="sendVCBtn"><AudioTwoTone twoToneColor={"blue"}/></span>
                             : <span onClick={sendMessage} id="sendMsgBtn" ref={sendBtn}><RightCircleTwoTone twoToneColor={"blue"}/></span>
                         }
                     </div>

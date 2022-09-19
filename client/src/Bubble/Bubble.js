@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { isJSON } from '../Services/misc';
 import "./Bubble.css"
 function Bubble(props) {
 
@@ -58,15 +59,6 @@ function Bubble(props) {
             <div ref={bottomRef}></div>
         </div>
     );
-}
-
-const isJSON = string => {
-    try{
-        JSON.parse(string)
-    } catch (e) {
-        return false
-    }
-    return JSON.parse(string)
 }
 
 const loadImage = url => {

@@ -7,7 +7,7 @@ import { firebaseApp } from "../DB/FireBaseConf";
 import {getAuth, onAuthStateChanged} from "firebase/auth"
 import defaultPNG from "../Assets/Images/default.png"
 import Modal from "../Modal/Modal"
-
+import { isJSON } from '../Services/misc';
 
 export default function Nav(props) {
     const Auth = getAuth(firebaseApp)
@@ -42,9 +42,10 @@ export default function Nav(props) {
     const getChatString = (index) => {
         const chat = chats[index]
         const lastMsg = chat.messages[chat.messages.length -1]
+        const currAttatchment = isJSON(lastMsg.attatchment)
         var str = ""
-        if (lastMsg.attatchment){
-            if (props.allowedImgTypes.includes(lastMsg.attatchment.data?.type)){
+        if (currAttatchment?.data){
+            if (props.allowedImgTypes.includes(currAttatchment.data?.type)){
                 str += "📷"
             } else {
                 str += "📄"

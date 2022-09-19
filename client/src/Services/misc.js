@@ -60,3 +60,13 @@ export const getMD5 = async file => {
 export const sleep = ms => {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+// a check if a string is JSON
+export const isJSON = string => {
+    try{
+        JSON.parse(string)
+    } catch (e) {
+        return false
+    }
+    return JSON.parse(string)
+}
