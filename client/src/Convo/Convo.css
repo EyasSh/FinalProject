@@ -109,11 +109,13 @@
 #shareFileBtn{
     margin-left: 30px;
     cursor: pointer;
+    transition: all 200ms ease-in-out;
 }
 
 #sendVCBtn,
 #sendMsgBtn{
     margin-right: 30px;
+    transition: all 200ms ease-in-out;
 }
 
 #sendVCBtn:hover,
@@ -135,4 +137,23 @@
 
 .noConvoSelected h1 {
     margin: 10px;
+}
+
+.sendVCCtrls {
+    position: absolute;
+    transition: all 250ms;
+    display: flex;
+    right: 50px;
+    width: 200px;
+    display: flex;
+    justify-content: space-evenly;
+}
+
+.sendVCCtrls span {
+    cursor: pointer;
+    transition: 200ms;
+}
+
+.sendVCCtrls span:hover {
+    transform: scale(1.1);
 }

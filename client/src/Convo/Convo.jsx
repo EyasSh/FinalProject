@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import "./Convo.css"
-import {PhoneFilled, VideoCameraFilled, PaperClipOutlined, AudioTwoTone, RightCircleTwoTone} from '@ant-design/icons';
+import {PhoneFilled, VideoCameraFilled, PaperClipOutlined, AudioTwoTone, RightCircleTwoTone, CheckCircleTwoTone, CloseCircleTwoTone} from '@ant-design/icons';
 import Bubble from '../Bubble/Bubble';
 import * as E2E from "../Services/E2E"
+import Timer from '../Timer/Timer';
 
 //assets
 import chatImg from "../Assets/Images/chat.png"
@@ -13,6 +14,7 @@ function Convo(props) {
     const [modalOpen, setModalOpen] = useState(false)
     const sendBtn = useRef()
     const msgBox = useRef()
+    const [voiceMsgActive, setVoiceMsgActive] = useState(false)
 
     const handleMsgChange = e =>{
         setMessageFeild(e.target.value)
@@ -36,16 +38,33 @@ function Convo(props) {
 
     const toggleVoiceUI = toggle => {
         const voiceMessagBtn = document.getElementById("sendVCBtn")
+        const msgInput = document.querySelector(".msgInput")
+        const sendVCCtrls = document.querySelector(".sendVCCtrls")
+        const shareFileBtn = document.getElementById("shareFileBtn")
 
         if (toggle) {
             voiceMessagBtn.classList.add("hidden")
+            msgInput.classList.add("hidden")
+            sendVCCtrls?.classList.remove("hidden")
+            shareFileBtn.classList.add("hidden")
         } else {
             voiceMessagBtn.classList.remove("hidden")
+            msgInput.classList.remove("hidden")
+            sendVCCtrls?.classList.add("hidden")
+            shareFileBtn.classList.remove("hidden")
         }
     }
 
-    const startVoiceMsg = () => {
-        toggleVoiceUI(true)
+    const toggleVoiceMsg = () => {
+        if (voiceMsgActive){
+            // its open so we close
+            setVoiceMsgActive(false)
+            toggleVoiceUI(false)    
+        } else {
+            //its closed so we open
+            setVoiceMsgActive(true)
+            toggleVoiceUI(true)
+        }
     }
 
     useEffect(() => {
@@ -110,9 +129,14 @@ function Convo(props) {
                         <span id="shareFileBtn" onClick={openFileModal}><PaperClipOutlined /></span>
                         <input ref={msgBox} placeholder='Type a message...' type="text" className="msgInput" onChange={handleMsgChange} />
                         {msgFeild.trim() === "" ? 
-                            <span onClick={startVoiceMsg} id="sendVCBtn"><AudioTwoTone twoToneColor={"blue"}/></span>
+                            <span onClick={toggleVoiceMsg} id="sendVCBtn"><AudioTwoTone twoToneColor={"blue"}/></span>
                             : <span onClick={sendMessage} id="sendMsgBtn" ref={sendBtn}><RightCircleTwoTone twoToneColor={"blue"}/></span>
                         }
+                        <div className='sendVCCtrls hidden'>
+                            <span onClick={toggleVoiceMsg} id='cancelVC'><CloseCircleTwoTone twoToneColor={"red"} /></span>
+                                {voiceMsgActive ?<Timer /> : ""}
+                            <span id='sendVC'><CheckCircleTwoTone twoToneColor={"#00CC00"} /></span>
+                        </div>
                     </div>
                 </> : 
                 <div className="noConvoSelected">
