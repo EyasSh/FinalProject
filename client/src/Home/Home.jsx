@@ -86,6 +86,7 @@ function Home(props) {
                 createdAt: messageJson.createdAt,
                 content: await E2E.decryptText(messageJson.content, chats[index].derivedKey),
                 attatchment: await E2E.decryptText(messageJson.attatchment, chats[index].derivedKey),
+                voice: await E2E.decryptText(messageJson.voice, chats[index].derivedKey),
                 sender: messageJson.sentBy
             }
             const convo = chats[index]
@@ -143,6 +144,7 @@ function Home(props) {
                                 createdAt: msg.createdAt,
                                 content: await E2E.decryptText(msg.content, convo.derivedKey),
                                 attatchment: await E2E.decryptText(msg.attatchment, convo.derivedKey),
+                                voice: await E2E.decryptText(msg.voice, convo.derivedKey),
                                 sender: msg.sentBy
                             }
                             convo.messages[msgIndex] = message
@@ -190,7 +192,7 @@ function Home(props) {
             <Navigate to="/"/>
         )    
     } else {
-        return <Spinner />
+        return <Spinner text={"Loading Conversations..."} />
     }
 }
 

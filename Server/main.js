@@ -157,7 +157,7 @@ io.on("connection", socket => {
         }
     })
 
-    socket.on("sendMessage", async (user, text, convoID, attatchment) => {
+    socket.on("sendMessage", async (user, text, convoID, attatchment, voice) => {
         try {
             if (!authSockets[socket.id]) return socket.emit("exception", {errMsg: "Not Authorized", requestedEvent: "createConvo", data: {contacts}})
             if (authSockets[socket.id] != user.uid){
@@ -171,7 +171,8 @@ io.on("connection", socket => {
                 attatchment: attatchment || 0, // The content and the url are both encrypted by the user
                 createdAt: Date.now(),
                 sentBy: user.uid,
-                convoID: convoID
+                convoID: convoID,
+                voice: voice || 0
             }
             await saveMessage(messageJSON, convoID)
             io.to(convoID).emit("receiveMessage", messageJSON)

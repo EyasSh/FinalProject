@@ -4,10 +4,12 @@ import {PhoneFilled, VideoCameraFilled, PaperClipOutlined, AudioTwoTone, RightCi
 import Bubble from '../Bubble/Bubble';
 import * as E2E from "../Services/E2E"
 import Timer from '../Timer/Timer';
+import * as VC from "../Services/voiceRecorder"
 
 //assets
 import chatImg from "../Assets/Images/chat.png"
 import Modal from '../Modal/Modal';
+import { uploadFile } from '../Services/misc';
 
 function Convo(props) {
     const [msgFeild, setMessageFeild] = useState("")
@@ -55,16 +57,24 @@ function Convo(props) {
         }
     }
 
-    const toggleVoiceMsg = () => {
-        if (voiceMsgActive){
-            // its open so we close
-            setVoiceMsgActive(false)
-            toggleVoiceUI(false)    
-        } else {
-            //its closed so we open
-            setVoiceMsgActive(true)
-            toggleVoiceUI(true)
-        }
+    const startVoiceMessage = async () => {
+        setVoiceMsgActive(true)
+        toggleVoiceUI(true)
+        msgBox.current.value = ""
+        setMessageFeild("")
+        VC.recordAudio() // starts the recording
+    }
+
+    const saveVoiceMessage = async () => {
+        setVoiceMsgActive(false)
+        toggleVoiceUI(false)
+        sendVoiceMessage(await VC.saveRecording())
+    }
+
+    const cancelVoiceMessage = () => {
+        setVoiceMsgActive(false)
+        toggleVoiceUI(false)
+        VC.cancelRecording()
     }
 
     useEffect(() => {
@@ -91,6 +101,18 @@ function Convo(props) {
         setMessageFeild("")
         const encryptedText = await E2E.encryptText(msgFeild, props.activeConvo.derivedKey)
         props.socket.emit("sendMessage", props.Auth.currentUser, encryptedText, props.activeConvo.convoID)
+    }
+
+    const sendVoiceMessage = (data) => {
+        uploadFile(data, `voiceMsg/${props.activeConvo.convoID}`, false)
+        .then(async url => {
+            const voice = {
+                url: url,
+                type: "audio/ogg; codecs=opus"
+            }
+            const encryptedVoice = await E2E.encryptText(JSON.stringify(voice), props.activeConvo.derivedKey)
+            props.socket.emit("sendMessage", props.Auth.currentUser, "", props.activeConvo.convoID, null, encryptedVoice)
+        })
     }
 
     const openFileModal = () => {
@@ -129,13 +151,13 @@ function Convo(props) {
                         <span id="shareFileBtn" onClick={openFileModal}><PaperClipOutlined /></span>
                         <input ref={msgBox} placeholder='Type a message...' type="text" className="msgInput" onChange={handleMsgChange} />
                         {msgFeild.trim() === "" ? 
-                            <span onClick={toggleVoiceMsg} id="sendVCBtn"><AudioTwoTone twoToneColor={"blue"}/></span>
+                            <span onClick={startVoiceMessage} id="sendVCBtn"><AudioTwoTone twoToneColor={"blue"}/></span>
                             : <span onClick={sendMessage} id="sendMsgBtn" ref={sendBtn}><RightCircleTwoTone twoToneColor={"blue"}/></span>
                         }
                         <div className='sendVCCtrls hidden'>
-                            <span onClick={toggleVoiceMsg} id='cancelVC'><CloseCircleTwoTone twoToneColor={"red"} /></span>
+                            <span onClick={cancelVoiceMessage} id='cancelVC'><CloseCircleTwoTone twoToneColor={"red"} /></span>
                                 {voiceMsgActive ?<Timer /> : ""}
-                            <span id='sendVC'><CheckCircleTwoTone twoToneColor={"#00CC00"} /></span>
+                            <span id='sendVC' onClick={saveVoiceMessage}><CheckCircleTwoTone twoToneColor={"#00CC00"} /></span>
                         </div>
                     </div>
                 </> : 

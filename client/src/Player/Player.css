@@ -1,0 +1,52 @@
+.playerWrapper{
+    display: flex;
+}
+
+.playBtn {
+    border: none;
+    outline: none;
+    height: fit-content;
+    width: fit-content;
+    border-radius: 50%;
+    font-size: 40px;
+    background-color: transparent;
+    animation: fade-in ease-in-out 200ms;
+    margin-right: 10px;
+}
+
+.playerRightSection{
+    display: flex;
+    align-self: center;
+    flex-direction: column;
+    text-align: center;
+    margin-bottom: 4px;
+}
+
+#fastForward{
+    -webkit-appearance: none;
+    background-color: white;
+    border-radius: 10px;
+    width: 200px;
+    height:10px;
+}
+
+#fastForward::-webkit-slider-thumb{
+    -webkit-appearance: none;
+    background-color: blue;
+    width: 20px;
+    border-radius: 50%;
+    height: 20px;
+}
+
+#fastForward::-webkit-progress-value{
+    background-color: red;
+}
+
+@keyframes fade-in{
+    0% {
+        opacity: 0;
+    }
+    100%{
+        opacity: 1;
+    }
+}

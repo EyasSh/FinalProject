@@ -5,10 +5,10 @@ import { firebaseApp } from "../DB/FireBaseConf";
 import {getStorage, ref, getDownloadURL, uploadBytesResumable} from "firebase/storage"
 const Storage = getStorage(firebaseApp)
 
-export const uploadFile = (src, destanation, encryptionKey) => {
+export const uploadFile = (src, destanation, limit) => {
     return new Promise(async (resolve, reject) => {
         if (!src) reject("No file was provided!")
-        if (src.size > 8000000) reject("File is larger than 8MB!")
+        if (src.size > 8000000 && limit) reject("File is larger than 8MB!")
         // we name the file with its md5 hash to prevent file duplicates
         const storageRef = ref(Storage, `${destanation}/${await getMD5(src)}`) // the second argument is the path to the file in firebase
         getDownloadURL(storageRef)
@@ -46,13 +46,18 @@ export const uploadFile = (src, destanation, encryptionKey) => {
 export const getMD5 = async file => {
     const reader = new FileReader()
     var hashMD5 = null
-    reader.onload = function(e){
-        hashMD5 = MD5(e.target.result)
+    try {
+        reader.onload = function(e){
+            hashMD5 = MD5(e.target.result)
+        }
+        reader.readAsBinaryString(file)
+    } catch {
+        hashMD5 = Date.now()
     }
-    reader.readAsBinaryString(file)
+    
     while (hashMD5 == null){
         await sleep(100)
-    } 
+    }
     return hashMD5
 }
 

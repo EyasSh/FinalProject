@@ -9,6 +9,7 @@ function Spinner(props) {
             <div className='spinner' id='layer2'></div>
             <div className='spinner' id='layer3'></div>
             <div className='spinner' id='layer4'></div>
+            <span className='loadingText'>{props.text?? ""}</span>
         </>
     );
 }

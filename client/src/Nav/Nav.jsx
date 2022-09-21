@@ -51,7 +51,11 @@ export default function Nav(props) {
                 str += "📄"
             }
         }
-        str += ` ${lastMsg.content}`
+        if (!lastMsg.voice || lastMsg.voice.includes("error decrypting")){
+            str += ` ${lastMsg.content}`
+        } else {
+            str += "🎙️ Voice Message"
+        }
         return str
     }
     if (searchFeild.trim() === "") {

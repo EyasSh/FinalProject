@@ -25,6 +25,13 @@
     animation: rotate 2s linear infinite;
 }
 
+.loadingText {
+    position: absolute;
+    left: 50%;
+    top: 60%;
+    transform: translateX(-50%);
+}
+
 @keyframes rotate {
     from {
         transform: translate(-50%, -50%) rotate(0deg);

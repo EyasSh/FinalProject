@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import Player from '../Player/Player';
 import { isJSON } from '../Services/misc';
 import "./Bubble.css"
 function Bubble(props) {
@@ -20,9 +21,21 @@ function Bubble(props) {
         if (typeof msg.attatchment == "string"){
             msg.attatchment = isJSON(msg.attatchment)
         }
+        if (typeof msg.voice == "string"){
+            msg.voice = isJSON(msg.voice)
+        }
         const isURL = urlRegex.test(msg.attatchment?.url)
+        const isVoiceUrl = urlRegex.test(msg.voice?.url)
         if (!isURL){
-            messagesJSX.push(<p className={msg.fromMe ? "from-me" : "from-them"}>{msg.content}</p>)
+            if (!isVoiceUrl){
+                messagesJSX.push(<p className={msg.fromMe ? "from-me" : "from-them"}>{msg.content}</p>)
+            } else {
+                messagesJSX.push(
+                    <p className={msg.fromMe ? "from-me" : "from-them"}>
+                        <Player style={msg.fromMe ? {color: "white"} : {color: "black"}} src={msg.voice?.url} type={msg.voice.type}/>
+                    </p>
+                )
+            }
         } else if (props.allowedImgTypes.includes(msg.attatchment?.data.type)){
             loadImage(msg.attatchment.url)
             messagesJSX.push(
