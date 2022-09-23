@@ -12,7 +12,7 @@ import {nanoid} from "nanoid"
 //ant design & images
 import {ArrowLeftOutlined} from '@ant-design/icons'
 
-function SignUp() {
+function SignUp(props) {
     let Auth=getAuth(firebaseApp);
     const [fname, setFname] = useState("");
     const [lname, setLname] = useState("");
@@ -20,20 +20,17 @@ function SignUp() {
     const [email, setEmail] = useState("");
     const [passwd, setPasswd] = useState("");
     const [errMsg, setErrMsg] = useState("")
-    const [isLoading, setIsLoading] = useState(true)
     const navigate = useNavigate()
 
-    //Wait for the user to load before rendering
-    onAuthStateChanged(Auth, (user) => {
-        setIsLoading(false)
-        
-        if (user){
-            // if there is an authenticated user redirect to the app page
-            navigate("/app")
-        }
-    })
-
     useEffect(() => {
+
+        const cleanup = onAuthStateChanged(Auth, (user) => {
+        
+            if (user){
+                // if there is an authenticated user redirect to the app page
+                navigate("/app")
+            }
+        })
         // Listen for an Enter key press as an alternative for the sign up button
         const keyDownHandler = event => {    
           if (event.key === 'Enter') {
@@ -45,6 +42,7 @@ function SignUp() {
     
         return () => {
           document.removeEventListener('keydown', keyDownHandler); // cleanup
+          cleanup()
         };
       }, []);
 
@@ -75,31 +73,29 @@ function SignUp() {
             try{
                 // make sure there is no authenticated user before signup
                 if (!getAuth().currentUser){
-                    let newUser=await createUserWithEmailAndPassword(Auth,email,passwd)
+                    // we clear the local storage to prevent any data collisions
+                    // We create the keypair and save it before sign up
+                    // To prevent the redirect to Home without the keys being saved
+                    const keyPair = await E2E.generateKeyPair()
+                    // we need to encrypt the private key
+                    var ciphertext = CryptoJS.AES.encrypt(JSON.stringify(keyPair.privateKeyJwk), passwd).toString();
+                    //now that the private key is encrypted we send to the server to be saved into the database
+
+                    props.setKeyData({
+                        "keyPair": {
+                            publicKeyJwk: keyPair.publicKeyJwk,
+                            privateKeyJwk: keyPair.privateKeyJwk
+                        },
+                        "keyPairReq": {
+                            publicKey: keyPair.publicKeyJwk,
+                            privateKey: ciphertext
+                        }
+                    })
+                    createUserWithEmailAndPassword(Auth,email,passwd)
                     .then(async (res)=>{
-                        localStorage.clear()
-                        localStorage.setItem("user",JSON.stringify(res.user))
                         updateProfile(Auth.currentUser, {
                             displayName: `${fname} ${lname}`
                         })
-
-                        // now we create the key pair
-                        const keyPair = await E2E.generateKeyPair()
-                        // we need to encrypt the private key
-                        var ciphertext = CryptoJS.AES.encrypt(JSON.stringify(keyPair.privateKeyJwk), passwd).toString();
-                        //now that the private key is encrypted we send to the server to be saved into the database
-                        axios.post("http://localhost:5000/fetchKeys", {
-                            publicKey: keyPair.publicKeyJwk,
-                            privateKey: ciphertext
-                        },{
-                            headers: {
-                                "Authorization": await Auth.currentUser.getIdToken()
-                            }
-                        })
-                        localStorage.setItem("keyPairEyas'sFinal", JSON.stringify({
-                            publicKeyJwk: keyPair.publicKeyJwk,
-                            privateKeyJwk: keyPair.privateKeyJwk
-                        }))
                     })
                     .catch(e=>{
                         console.log(e)
@@ -111,67 +107,61 @@ function SignUp() {
         }
     }
 
-    if(!isLoading){
-        return !Auth.currentUser ? (
-            <div className='SuContainer'>
-                <Link to='/'>
-                    <ArrowLeftOutlined className='Back-Arrow' />
-                </Link>
-                <div className='signUpForm'>
-                    
-                    <h1 className='SignUpHeader'>Sign Up</h1>
-                    <img src={logo} className='Logo' alt='eyas'></img>
-                    <br></br>
-                    <label>
-                        First Name
-                    </label>
-                    <br></br>
-                    <input placeholder="First Name" type={"text"} className="UserData"
-                        onChange={(e) => setFname(e.target.value)}
-                    />
-    
-                    <label>
-                        Last Name
-                    </label>
-                    <br></br>
-                    <input placeholder="Last Name" type={"text"} className="UserData"
-                        onChange={(e) => setLname(e.target.value)}
-                    />
-    
-                    <br></br>
-                    <label>
-                        Phone
-                    </label>
-                    <br></br>
-                    <input placeholder="Phone" type={"text"} className="UserData"
-                    onChange={(e) => setPhone(e.target.value)}
-                    />
-                    <br></br>
-                    <label >Email</label>
-                    <br></br>
-                    <input type={"text"} placeholder="Email" className="UserData"
-                        onChange={(e) => setEmail(e.target.value)}
-                    />
-                    <br></br>
-                    <label>Password</label>
-                    <br></br>
-                    <input type={"password"} placeholder="Password" className="UserData"
-                        onChange={(e) => setPasswd(e.target.value)}
-                    />
-                    {errMsg ? <span className="errMsg">{errMsg}</span> : ""}
-                    <br></br>
-                    <button className="Submit" 
-                    onClick={handleSubmit} >Sign Up</button>
-                </div>
+    return (
+        <div className='SuContainer'>
+            <Link to='/'>
+                <ArrowLeftOutlined className='Back-Arrow' />
+            </Link>
+            <div className='signUpForm'>
                 
-                
+                <h1 className='SignUpHeader'>Sign Up</h1>
+                <img src={logo} className='Logo' alt='eyas'></img>
+                <br></br>
+                <label>
+                    First Name
+                </label>
+                <br></br>
+                <input placeholder="First Name" type={"text"} className="UserData"
+                    onChange={(e) => setFname(e.target.value)}
+                />
+
+                <label>
+                    Last Name
+                </label>
+                <br></br>
+                <input placeholder="Last Name" type={"text"} className="UserData"
+                    onChange={(e) => setLname(e.target.value)}
+                />
+
+                <br></br>
+                <label>
+                    Phone
+                </label>
+                <br></br>
+                <input placeholder="Phone" type={"text"} className="UserData"
+                onChange={(e) => setPhone(e.target.value)}
+                />
+                <br></br>
+                <label >Email</label>
+                <br></br>
+                <input type={"text"} placeholder="Email" className="UserData"
+                    onChange={(e) => setEmail(e.target.value)}
+                />
+                <br></br>
+                <label>Password</label>
+                <br></br>
+                <input type={"password"} placeholder="Password" className="UserData"
+                    onChange={(e) => setPasswd(e.target.value)}
+                />
+                {errMsg ? <span className="errMsg">{errMsg}</span> : ""}
+                <br></br>
+                <button className="Submit" 
+                onClick={handleSubmit} >Sign Up</button>
             </div>
-        ) : (
-            <Navigate to="/app"/>
-        )    
-    } else {
-        return ""
-    }
+            
+            
+        </div>
+    )
 }
 
 export default SignUp;  

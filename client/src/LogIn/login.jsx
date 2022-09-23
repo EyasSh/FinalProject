@@ -11,7 +11,7 @@ import {getAuth, signInWithEmailAndPassword, onAuthStateChanged} from "firebase/
 //assets
 import logo from "../Assets/Images/Logo.png"
 
-function Login(){
+function Login(props){
     let Auth=getAuth(firebaseApp);
     const [errMsg, setErrMsg] = useState();
     const [email, setEmail] = useState("");
@@ -25,9 +25,10 @@ function Login(){
         if (user){
             // if the user is looged in redirect him to the app
             // we temporarily save the password into the local storage in order to use it when logged in to decrypt the keys
-            localStorage.clear()
             if (passwd.trim()){
-                localStorage.setItem("passwdEyas'sFinal", passwd)
+                const newKeyData = props.keyData
+                newKeyData.passwd = passwd
+                props.setKeyData(newKeyData)
             }
             navigate("/app")
         }

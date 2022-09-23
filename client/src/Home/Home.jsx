@@ -38,7 +38,7 @@ function Home(props) {
         }
     })
     const signOut = () => {
-        localStorage.clear()
+        props.setKeyData({})
         Auth.signOut()
     }
     const getConvoById = id => {
@@ -59,7 +59,7 @@ function Home(props) {
                     convo.publicKey = member.publicKey
                 }
             })
-            const privateKey = JSON.parse(localStorage.getItem("keyPairEyas'sFinal")).privateKeyJwk
+            const privateKey = props.keyData.keyPair.privateKeyJwk
             convo.derivedKey = await E2E.deriveKey(convo.publicKey, privateKey)
             // convo.messages.push({
             //     sender: convo.createdBy,
@@ -97,7 +97,21 @@ function Home(props) {
         })
 
         if (isLoading && authenticated){
-            const passwd = localStorage.getItem("passwdEyas'sFinal")
+            const passwd = props.keyData.passwd
+            const serverReq = props.keyData.keyPairReq
+
+            // now that we got this data, we need to modify the state on the app.js
+            const newKeyData = props.keyData
+            newKeyData.passwd = null
+            newKeyData.keyPairReq = null
+
+            console.log(passwd, serverReq)
+            if (serverReq) {
+                // The user just came from the signup page, and still havent posted the keys in the database
+                server.post("fetchKeys", (serverReq))
+                setKeysLoaded(true)
+            }
+
             if (passwd && !keysLoaded){
                 server.get("fetchKeys")
                 .then(response => {
@@ -105,19 +119,20 @@ function Home(props) {
                     const data = response.data.privateKey
                     var bytes = CryptoJS.AES.decrypt(data, passwd);
                     // we remove the password from the local storage ASAP
-                    localStorage.removeItem("passwdEyas'sFinal")
                     var decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-                    localStorage.setItem("keyPairEyas'sFinal", JSON.stringify({
+                    newKeyData.keyPair = {
                         publicKeyJwk: response.data.publicKey,
                         privateKeyJwk: decryptedData
-                    }))
+                    }
                     setKeysLoaded(true)
                 })    
             } else if (!passwd) { // The password is not available when coming from the signup page
-                // when coming from the sign up page the keys are already set in the localstorage
-                if (JSON.parse(localStorage.getItem("keyPairEyas'sFinal"))) {
+                // when coming from the sign up page the keys are already set in the memory
+                console.log(props.keyData.keyPair)
+                if (props.keyData.keyPair) {
                     setKeysLoaded(true)
                 } else {
+                    console.log("hmmmm")
                     // The user has to re-enter the password
                     signOut()
                 }
@@ -137,7 +152,7 @@ function Home(props) {
                             }
                         })
 
-                        const privateKey = JSON.parse(localStorage.getItem("keyPairEyas'sFinal")).privateKeyJwk
+                        const privateKey = props.keyData.keyPair.privateKeyJwk
                         convo.derivedKey = await E2E.deriveKey(convo.publicKey, privateKey)
                         convo.messages.forEach(async (msg, msgIndex) => {
                             const message = {
@@ -162,9 +177,12 @@ function Home(props) {
                     })
                     setIsLoading(false)
                 }).catch(e => {
+                    console.log(e)
                     signOut()
                 })
             }
+            // now we just save the modified data
+            props.setKeyData(newKeyData)
         }
         return () => {
             socket.off("createConvo")
