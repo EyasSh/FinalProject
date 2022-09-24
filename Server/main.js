@@ -29,12 +29,15 @@ const checkAuth = (req, res, next) => {
     .catch(() => res.status(401).send("Unauthorized"))
 }
 
-app.get("/users", checkAuth, (req, res)=> {
-    console.log(req)
+app.get("/users", checkAuth,  (req, res)=> {
     if (req.query.email) {
         admin.auth().getUserByEmail(req.query.email)
-        .then(user => {
-            res.status(200).send(user)
+        .then(async user => {
+            const data = {
+                user: user,
+                publicKey: await getPublicKey(user.uid)
+            }
+            res.status(200).send(data)
         })
         .catch(() => res.sendStatus(500))
     } else{
@@ -43,7 +46,6 @@ app.get("/users", checkAuth, (req, res)=> {
 })
 
 app.get("/conversations", checkAuth, async (req, res) => {
-    console.log(req)
     const cnovoRef = db.collection("Conversations")
     const data = await cnovoRef.where("searchTerms", "array-contains", req.uid).get()
     const result = [] 
@@ -59,7 +61,6 @@ app.get("/conversations", checkAuth, async (req, res) => {
         } else {
             console.log("Warning: couldn't join rooms")
         }
-
         const msgData = await db.collection("Message")
         .doc(convo.convoID)
         .collection("Messages")
@@ -81,12 +82,10 @@ app.get("/conversations", checkAuth, async (req, res) => {
         result.push(convo)
 
     }
-
     res.status(200).send(result)
 })
 
 app.post("/fetchKeys", checkAuth, async (req, res) => {
-    console.log(req)
     await db.collection("Users").doc(req.uid).set({
         publicKey: req.body.publicKey,
         privateKey: req.body.privateKey
@@ -95,7 +94,6 @@ app.post("/fetchKeys", checkAuth, async (req, res) => {
 })
 
 app.get("/fetchKeys", checkAuth, async (req, res) => {
-    console.log(req)
     const doc = await db.collection("Users").doc(req.uid).get()
     if (!doc.exists) return res.sendStatus(404)
     res.status(200).send(doc.data())
@@ -118,7 +116,8 @@ io.on("connection", socket => {
         } catch (e){console.error(e)}
     })
 
-    socket.on("createConvo", async (user, contacts) => {
+    socket.on("createConvo", async (user, contacts, encryptionKeys) => {        
+        console.log(encryptionKeys)
         if (!authSockets[socket.id]) return socket.emit("exception", {errMsg: "Not Authorized", requestedEvent: "createConvo", data: {contacts}})
         if (authSockets[socket.id] != user.uid){
             socket.emit("exception", {errMsg: "Authorization error"})
@@ -154,6 +153,47 @@ io.on("connection", socket => {
                 socketAuths[contacts[0].uid].emit("createConvo", convoConstructor)
                 socketAuths[contacts[0].uid].join(id)
             }
+        } else if (contacts.length > 1 && encryptionKeys){ // Group Chat
+            let participantIds = [user.uid]
+            let id = user.uid.slice(0, 3) + "-"
+            contacts.forEach(contact => {
+                participantIds.push(JSON.parse(contact).uid)
+            })
+            console.log(participantIds)
+            participantIds = participantIds.sort()
+            participantIds.forEach(uid => {
+                id += uid.slice(0, 3)
+            })
+            const convo = db.collection("Conversations").doc(id)
+            const data = await convo.get()
+            if (data.exists) return // convo already exists
+
+            //set the members array
+            const members = [JSON.stringify({uid: user.uid, publicKey: await getPublicKey(user.uid), name: user.displayName, picture: user.photoURL})]
+            for (const contact in contacts){
+                const curr = JSON.parse(contacts[contact])
+                members.push(JSON.stringify({uid: curr.uid, publicKey: await getPublicKey(curr.uid), name: curr.displayName, picture: curr.photoURL}))
+            }
+
+            const convoConstructor = {
+                convoID: id,
+                name: `${user.displayName}'s group`,
+                searchTerms: participantIds, // We need this to be able to get the document by ID (firebase doesnt support substrings)
+                members: members,
+                messages: [], // this stays as an empty array which is filled up after fetching the messages collection to be sent to the client
+                group: true,
+                encryptionKeys: encryptionKeys, // this is an array where there is an end to end encrypted key for each user to decrypt to get the main group key
+                createdBy: user.uid,
+                createdAt: Date.now()
+            }
+
+            await convo.set(convoConstructor)
+            socketAuths[user.uid].emit("createConvo", convoConstructor)
+            socket.join(id)
+            participantIds.forEach(uid => {
+                socketAuths[uid]?.emit("createConvo", convoConstructor)
+                socketAuths[uid]?.join(id)
+            })
         }
     })
 
@@ -167,6 +207,7 @@ io.on("connection", socket => {
                 // we close the connection here because someone is trying to manipulate the request
             }
             const messageJSON = {
+                name: user.displayName,
                 content: text,
                 attatchment: attatchment || 0, // The content and the url are both encrypted by the user
                 createdAt: Date.now(),

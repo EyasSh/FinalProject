@@ -54,7 +54,7 @@ export default function Nav(props) {
                 str += "📄"
             }
         }
-        if (!lastMsg.voice || lastMsg.voice.includes("error decrypting")){
+        if (!lastMsg.voice || lastMsg.voice?.toString().includes("error decrypting")){
             str += ` ${lastMsg.content}`
         } else {
             str += "🎙️ Voice Message"
@@ -65,7 +65,7 @@ export default function Nav(props) {
         for (let index = 0; index < chats.length; index++) {
             const chat = chats[index];
             chatsJSX.push(
-                <div className="chat" onClick={() => props.openConvo(chat.convoID)}>
+                <div key={chat.convoID} className="chat" onClick={() => props.openConvo(chat.convoID)}>
                     <img src={chat.picture} alt="" className="profilePic" />
                     <span className='contactName'>{chat.name}</span>
                     {chat.messages[chat.messages.length -1] ?
@@ -87,7 +87,7 @@ export default function Nav(props) {
             const chat = chats[index];
             if (!chat.name.toLowerCase().includes(searchFeild.toLowerCase())) continue;
             chatsJSX.push(
-                <div className="chat" onClick={() => props.openConvo(chat.convoID)}>
+                <div key={chat.convoID} className="chat" onClick={() => props.openConvo(chat.convoID)}>
                     <img src={chat.picture} alt="" className="profilePic" />
                     <span className='contactName'>{chat.name}</span>
                     {chat.messages[chat.messages.length -1] ?

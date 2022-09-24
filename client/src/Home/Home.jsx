@@ -143,11 +143,12 @@ function Home(props) {
 
             if (keysLoaded && authenticated) {
                 //Load the existing conversations
+                var proccessedChats = []
                 server.get("conversations")
-                .then( res => {
-                    res.data.forEach(async convo => {
+                .then( async res => {
+                    for (const index in res.data){
+                        const convo = res.data[index]
                         const privateKey = props.keyData.keyPair.privateKeyJwk
-                        console.log(convo)
                         if (!convo.group){
                             convo.members.forEach(member => {
                                 member = JSON.parse(member)
@@ -181,14 +182,15 @@ function Home(props) {
 
                         // Check for duplicates
                         var unique = true
-                        chats.forEach(chat => {
+                        proccessedChats.forEach(chat => {
                             if (convo.convoID == chat.convoID){
                                 unique = false
                             }
                         })
                         if (unique)
-                            setChats([...chats, convo]) // this is how you push to a state that is an array
-                    })
+                            proccessedChats = [...proccessedChats, convo] // this is how you push to a state that is an array
+                    }
+                    setChats(proccessedChats)
                     setIsLoading(false)
                 }).catch(e => {
                     console.log(e)

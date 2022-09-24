@@ -29,14 +29,14 @@ function Bubble(props) {
         if (!isURL){
             if (!isVoiceUrl){
                 messagesJSX.push(
-                    <p className={msg.fromMe ? "from-me" : "from-them"}>
+                    <p key={msg.createdAt} className={msg.fromMe ? "from-me" : "from-them"}>
                         {msg.group ?<><span className='messageName'>{msg.name}</span> <br></br></> : ""}
                         {msg.content}
                     </p>
                 )
             } else {
                 messagesJSX.push(
-                    <p className={msg.fromMe ? "from-me" : "from-them"}>
+                    <p key={msg.createdAt} className={msg.fromMe ? "from-me" : "from-them"}>
                         {msg.group ?<><span className='messageName'>{msg.name}</span> <br></br></> : ""}
                         <Player style={msg.fromMe ? {color: "white"} : {color: "black"}} src={msg.voice?.url} type={msg.voice.type}/>
                     </p>
@@ -45,7 +45,7 @@ function Bubble(props) {
         } else if (props.allowedImgTypes.includes(msg.attatchment?.data.type)){
             loadImage(msg.attatchment.url)
             messagesJSX.push(
-                <p className={msg.fromMe ? "from-me" : "from-them"}>
+                <p key={msg.createdAt} className={msg.fromMe ? "from-me" : "from-them"}>
                     {msg.group ?<><span className='messageName'>{msg.name}</span> <br></br></> : ""}
                     <img className='imageAttatchment' src={msg.attatchment.url} alt="" />
                     <hr></hr>
@@ -54,7 +54,7 @@ function Bubble(props) {
             )
         } else {
             messagesJSX.push(
-                <p className={msg.fromMe ? "from-me" : "from-them"}>
+                <p key={msg.createdAt} className={msg.fromMe ? "from-me" : "from-them"}>
                     {msg.group ?<><span className='messageName'>{msg.name}</span> <br></br></> : ""}
                     File: <a href={msg.attatchment.url}>{msg.attatchment.data?.name}</a>
                     <br></br>
