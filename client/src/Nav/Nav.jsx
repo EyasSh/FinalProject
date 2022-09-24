@@ -44,6 +44,9 @@ export default function Nav(props) {
         const lastMsg = chat.messages[chat.messages.length -1]
         const currAttatchment = isJSON(lastMsg.attatchment)
         var str = ""
+        if (chat.group && !lastMsg.fromMe){
+            str += lastMsg.name + ":"
+        }
         if (currAttatchment?.data){
             if (props.allowedImgTypes.includes(currAttatchment.data?.type)){
                 str += "📷"
@@ -177,7 +180,7 @@ export default function Nav(props) {
         </div>
 
         {/* Prompts */}
-        {modalOpen ? <Modal allowedImgTypes={props.allowedImgTypes} socket={props.socket} server={props.server} setProfPic={setProfPic} profPic={profPic} modalOpen={modalOpen} setModalOpen={setModalOpen} chats={chats} /> : ""}
+        {modalOpen ? <Modal keyData={props.keyData} allowedImgTypes={props.allowedImgTypes} socket={props.socket} server={props.server} setProfPic={setProfPic} profPic={profPic} modalOpen={modalOpen} setModalOpen={setModalOpen} chats={chats} /> : ""}
       </div>
     );
 }

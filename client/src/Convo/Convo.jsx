@@ -99,6 +99,7 @@ function Convo(props) {
         if (msgFeild.trim == "") return
         msgBox.current.value = ""
         setMessageFeild("")
+        console.log(props.activeConvo.derivedKey)
         const encryptedText = await E2E.encryptText(msgFeild, props.activeConvo.derivedKey)
         props.socket.emit("sendMessage", props.Auth.currentUser, encryptedText, props.activeConvo.convoID)
     }

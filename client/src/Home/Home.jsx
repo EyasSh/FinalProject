@@ -7,6 +7,7 @@ import{getAuth, onAuthStateChanged} from "firebase/auth"
 import axios from "axios"
 import {socket} from "../Services/socket";
 import defaultPNG from "../Assets/Images/default.png"
+import gDefaultPng from "../Assets/Images/groupDefault.png"
 import * as E2E from "../Services/E2E"
 import CryptoJS from "crypto-js";
 import Spinner from '../Spinner/Spinner';
@@ -51,22 +52,25 @@ function Home(props) {
 
     useEffect(() => {
         socket.on("createConvo", async convo => {
-            convo.members.forEach(member => {
-                member = JSON.parse(member)
-                if (member.uid != Auth.currentUser.uid){
-                    convo.name = member.name
-                    convo.picture = member.picture ? member.picture : defaultPNG
-                    convo.publicKey = member.publicKey
-                }
-            })
             const privateKey = props.keyData.keyPair.privateKeyJwk
-            convo.derivedKey = await E2E.deriveKey(convo.publicKey, privateKey)
-            // convo.messages.push({
-            //     sender: convo.createdBy,
-            //     fromMe: false,
-            //     content: "Created a conversation",
-            //     createdAt: Date.now()
-            // })
+            if (!convo.group){
+                convo.members.forEach(member => {
+                    member = JSON.parse(member)
+                    if (member.uid != Auth.currentUser.uid){
+                        convo.name = member.name
+                        convo.picture = member.picture ? member.picture : defaultPNG
+                        convo.publicKey = member.publicKey
+                    }
+                })
+                convo.derivedKey = await E2E.deriveKey(convo.publicKey, privateKey)
+            } else {
+                convo.picture = convo.picture ? convo.picture : gDefaultPng
+                const selfKey = JSON.parse(convo.encryptionKeys)[Auth.currentUser.uid]
+                const decryptionKey = await E2E.deriveKey(selfKey.publicKey, privateKey)
+                var groupKeys = await E2E.decryptText(selfKey.encryptedKey, decryptionKey)
+                groupKeys = JSON.parse(groupKeys)
+                convo.derivedKey = await E2E.deriveKey(groupKeys.publicKey, groupKeys.privateKey)
+            }
 
             // Check for duplicates
             var unique = true
@@ -83,6 +87,7 @@ function Home(props) {
             const index = getConvoById(messageJson.convoID)
             if (index == null) return
             const message = {
+                name: messageJson.name,
                 createdAt: messageJson.createdAt,
                 content: await E2E.decryptText(messageJson.content, chats[index].derivedKey),
                 attatchment: await E2E.decryptText(messageJson.attatchment, chats[index].derivedKey),
@@ -90,6 +95,7 @@ function Home(props) {
                 sender: messageJson.sentBy
             }
             const convo = chats[index]
+            if (convo.group) message.group = true;
             convo.messages.push(message)
             const newChats = [...chats]
             newChats[index] = convo
@@ -105,7 +111,6 @@ function Home(props) {
             newKeyData.passwd = null
             newKeyData.keyPairReq = null
 
-            console.log(passwd, serverReq)
             if (serverReq) {
                 // The user just came from the signup page, and still havent posted the keys in the database
                 server.post("fetchKeys", (serverReq))
@@ -128,34 +133,43 @@ function Home(props) {
                 })    
             } else if (!passwd) { // The password is not available when coming from the signup page
                 // when coming from the sign up page the keys are already set in the memory
-                console.log(props.keyData.keyPair)
                 if (props.keyData.keyPair) {
                     setKeysLoaded(true)
                 } else {
-                    console.log("hmmmm")
                     // The user has to re-enter the password
                     signOut()
                 }
             }
 
-            if (keysLoaded) {
+            if (keysLoaded && authenticated) {
                 //Load the existing conversations
                 server.get("conversations")
                 .then( res => {
                     res.data.forEach(async convo => {
-                        convo.members.forEach(member => {
-                            member = JSON.parse(member)
-                            if (member.uid != Auth.currentUser.uid){
-                                convo.name = member.name
-                                convo.picture = member.picture ? member.picture : defaultPNG
-                                convo.publicKey = member.publicKey
-                            }
-                        })
-
                         const privateKey = props.keyData.keyPair.privateKeyJwk
-                        convo.derivedKey = await E2E.deriveKey(convo.publicKey, privateKey)
+                        console.log(convo)
+                        if (!convo.group){
+                            convo.members.forEach(member => {
+                                member = JSON.parse(member)
+                                if (member.uid != Auth.currentUser.uid){
+                                    convo.name = member.name
+                                    convo.picture = member.picture ? member.picture : defaultPNG
+                                    convo.publicKey = member.publicKey
+                                }
+                            })
+                            convo.derivedKey = await E2E.deriveKey(convo.publicKey, privateKey)
+                        } else {
+                            convo.picture = convo.picture ? convo.picture : gDefaultPng
+                            const selfKey = JSON.parse(convo.encryptionKeys)[Auth.currentUser.uid]
+                            const decryptionKey = await E2E.deriveKey(selfKey.publicKey, privateKey)
+                            var groupKeys = await E2E.decryptText(selfKey.encryptedKey, decryptionKey)
+                            groupKeys = JSON.parse(groupKeys)
+                            convo.derivedKey = await E2E.deriveKey(groupKeys.publicKey, groupKeys.privateKey)
+                        }
                         convo.messages.forEach(async (msg, msgIndex) => {
                             const message = {
+                                group: convo.group,
+                                name: msg.name,
                                 createdAt: msg.createdAt,
                                 content: await E2E.decryptText(msg.content, convo.derivedKey),
                                 attatchment: await E2E.decryptText(msg.attatchment, convo.derivedKey),
@@ -202,7 +216,7 @@ function Home(props) {
     if (!isLoading){
         return Auth.currentUser ? (
             <div>
-                <Nav allowedImgTypes={allowedImgTypes} socket={socket} server={server} openConvo={setActiveConvo} chats={chats} />
+                <Nav keyData={props.keyData} allowedImgTypes={allowedImgTypes} socket={socket} server={server} openConvo={setActiveConvo} chats={chats} />
                 <Convo allowedImgTypes={allowedImgTypes} Auth={Auth} socket={socket} activeConvo={chats.find(convo => convo.convoID == activeConvo)}/>
                 <Outlet></Outlet>
             </div>

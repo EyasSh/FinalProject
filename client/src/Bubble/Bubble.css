@@ -109,3 +109,8 @@
   .imageAttatchment{
     max-width: 100%;
   }
+
+  .messageName{
+    font-weight: bold;
+    text-decoration: underline;
+  }

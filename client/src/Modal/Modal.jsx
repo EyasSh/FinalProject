@@ -2,7 +2,7 @@ import {React, useRef, useState} from 'react';
 import * as Joi from "joi"
 import { uploadFile } from '../Services/misc';
 import Spinner from "../Spinner/Spinner"
-import { decryptText, encryptText } from '../Services/E2E';
+import { decryptText, deriveKey, encryptText, generateKeyPair } from '../Services/E2E';
 
 //css
 import "./Modal.css"
@@ -21,6 +21,7 @@ function Modal(props) {
     const [checkedContacts, setCheckedContacts] = useState([])
     const [newConvoSearch, setNewConvoSearch] = useState("")
     const [contactList, setcontactList] = useState([])
+    const [publicKeys, setPublicKeys] = useState([])
 
     // edit profile modal states
     const Auth = getAuth(firebaseApp)
@@ -78,7 +79,13 @@ function Modal(props) {
                 })
             }
         })
-        contactList.forEach(user => {
+        contactList.forEach(data => {
+            const user = data.user
+            if (!publicKeys[user.uid]){
+                var newPubKeys = publicKeys
+                newPubKeys[user.uid] = data.publicKey
+                setPublicKeys(newPubKeys)    
+            }
             if (user.displayName.toLowerCase().includes(newConvoSearch.toLowerCase()) || user.email.toLowerCase().includes(newConvoSearch.toLowerCase()) || isUserChecked(user)){
                 matchSearch.push(user)
             }
@@ -105,8 +112,38 @@ function Modal(props) {
         setCheckedContacts(updatedList)
     }
 
-    const createConvo = (e) => {
-        props.socket.emit("createConvo", Auth.currentUser, checkedContacts)
+    const createConvo = async (e) => {
+        if (checkedContacts.length == 1){
+            props.socket.emit("createConvo", Auth.currentUser, checkedContacts)
+        } else if (checkedContacts.length > 1){
+            //we need to generate 2 key pairs and derive a key from them
+            const groupPair1 = await generateKeyPair()
+            const groupPair2 = await generateKeyPair()
+            var rawKey = {
+                publicKey: groupPair1.publicKeyJwk, 
+                privateKey: groupPair2.privateKeyJwk
+            }
+            const groupKeys = {}
+            //add your own key
+            const selfDerived = await deriveKey(props.keyData.keyPair.publicKeyJwk, props.keyData.keyPair.privateKeyJwk)
+            const selfEncryptedKey = await encryptText(JSON.stringify(rawKey), selfDerived)
+            groupKeys[Auth.currentUser.uid] = {
+                encryptedKey: selfEncryptedKey,
+                publicKey: props.keyData.keyPair.publicKeyJwk
+            }
+            console.log(rawKey, groupKeys[Auth.currentUser.uid].encryptedKey, selfDerived)
+            console.log(await decryptText(groupKeys[Auth.currentUser.uid].encryptedKey, selfDerived))
+            // loop through the selected contacts and add their keys
+            for (const contact in checkedContacts) {
+                const resPubKey = publicKeys[JSON.parse(checkedContacts[contact]).uid]
+                groupKeys[JSON.parse(checkedContacts[contact]).uid] = {
+                    encryptedKey: await encryptText(JSON.stringify(rawKey), await deriveKey(resPubKey, props.keyData.keyPair.privateKeyJwk)),
+                    publicKey: props.keyData.keyPair.publicKeyJwk
+                }
+            }
+            console.log(groupKeys)
+            props.socket.emit("createConvo", Auth.currentUser, checkedContacts, JSON.stringify(groupKeys))
+        }
         closeModal()
     }
 
@@ -205,9 +242,7 @@ function Modal(props) {
                         name: selectedFile.name
                     }
                 }
-                console.log(fileObject)
                 const encryptedFile = await encryptText(JSON.stringify(fileObject), props.convo.derivedKey)
-                console.log(await decryptText(encryptedFile, props.convo.derivedKey))
                 props.socket.emit("sendMessage", props.Auth.currentUser, txtMsg, props.convo.convoID, encryptedFile)
                 setUploading(false)
             })

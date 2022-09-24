@@ -1,9 +1,6 @@
 import "./login.css"
 import {useState, useEffect} from "react"
 import { Link, Navigate, useNavigate} from "react-router-dom"
-import { UserOutlined } from '@ant-design/icons'
-import { EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
-import {Input ,Form} from 'antd'
 import * as Joi from "joi"
 import { firebaseApp } from "../DB/FireBaseConf";
 import {getAuth, signInWithEmailAndPassword, onAuthStateChanged} from "firebase/auth"
