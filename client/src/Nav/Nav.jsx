@@ -38,7 +38,13 @@ export default function Nav(props) {
 
     // Get the chats and render all of the ones that match the search
     const chatsJSX = []
-    const chats = props.chats
+    const chats = props.chats.sort((a, b) => { // we need to sort the array by the last message created at
+        if(b.messages[b.messages.length -1]?.createdAt > a.messages[a.messages.length -1]?.createdAt || !b.messages[b.messages.length -1]){
+            return 1 // larger than 0 means sort a after b
+        } else {
+            return -1
+        }
+    })
     const getChatString = (index) => {
         const chat = chats[index]
         const lastMsg = chat.messages[chat.messages.length -1]

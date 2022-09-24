@@ -108,7 +108,8 @@
 
 .chatsWrapper {
     width: 100%;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: scroll;
     transition: all 300ms ease;
 }
 
@@ -138,14 +139,14 @@
     position: absolute;
     top: var(--chat-spacing);
     margin-left: var(--chat-spacing);
-    font-size: 20px;
+    font-size: 1.5vw;
 }
 
 .chat .date {
     position: absolute;
     top: var(--chat-spacing);
     right: var(--chat-spacing);
-    font-size: 15px;
+    font-size: 1vw;
     color: #626262;
 }
 
@@ -164,7 +165,7 @@
     position: absolute;
     background-color: #248bf5;
     color: white;
-    font-size: 50px;
+    font-size: 55px;
     width: 70px;
     height: 70px;
     text-align: center;
