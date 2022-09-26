@@ -4,6 +4,7 @@ const cors = require("cors");
 const { createServer } = require("http");
 const {Server} = require("socket.io");
 const { QuerySnapshot } = require("firebase-admin/firestore");
+const {uuid} = require("uuidv4")
 
 const app = express();
 const httpServer = createServer(app)
@@ -117,7 +118,6 @@ io.on("connection", socket => {
     })
 
     socket.on("createConvo", async (user, contacts, encryptionKeys) => {        
-        console.log(encryptionKeys)
         if (!authSockets[socket.id]) return socket.emit("exception", {errMsg: "Not Authorized", requestedEvent: "createConvo", data: {contacts}})
         if (authSockets[socket.id] != user.uid){
             socket.emit("exception", {errMsg: "Authorization error"})
@@ -138,8 +138,8 @@ io.on("connection", socket => {
                 convoID: id,
                 searchTerms: participantIds, // We need this to be able to get the document by ID (firebase doesnt support substrings)
                 members: [
-                    JSON.stringify({uid: contacts[0].uid, publicKey: await getPublicKey(contacts[0].uid), name: contacts[0].displayName, picture: contacts[0].photoURL}),
-                    JSON.stringify({uid: user.uid, publicKey: await getPublicKey(user.uid), name: user.displayName, picture: user.photoURL})
+                    JSON.stringify({uid: contacts[0].uid, publicKey: await getPublicKey(contacts[0].uid), name: contacts[0].displayName, picture: contacts[0].photoURL, email: contacts[0].email}),
+                    JSON.stringify({uid: user.uid, publicKey: await getPublicKey(user.uid), name: user.displayName, picture: user.photoURL, email: user.email})
                 ],
                 messages: [], // this stays as an empty array which is filled up after fetching the messages collection to be sent to the client
                 group: false,
@@ -155,24 +155,19 @@ io.on("connection", socket => {
             }
         } else if (contacts.length > 1 && encryptionKeys){ // Group Chat
             let participantIds = [user.uid]
-            let id = user.uid.slice(0, 3) + "-"
+            let id = uuid()
             contacts.forEach(contact => {
                 participantIds.push(JSON.parse(contact).uid)
-            })
-            console.log(participantIds)
-            participantIds = participantIds.sort()
-            participantIds.forEach(uid => {
-                id += uid.slice(0, 3)
             })
             const convo = db.collection("Conversations").doc(id)
             const data = await convo.get()
             if (data.exists) return // convo already exists
 
             //set the members array
-            const members = [JSON.stringify({uid: user.uid, publicKey: await getPublicKey(user.uid), name: user.displayName, picture: user.photoURL})]
+            const members = [JSON.stringify({uid: user.uid, publicKey: await getPublicKey(user.uid), name: user.displayName, picture: user.photoURL, email: user.email})]
             for (const contact in contacts){
                 const curr = JSON.parse(contacts[contact])
-                members.push(JSON.stringify({uid: curr.uid, publicKey: await getPublicKey(curr.uid), name: curr.displayName, picture: curr.photoURL}))
+                members.push(JSON.stringify({uid: curr.uid, publicKey: await getPublicKey(curr.uid), name: curr.displayName, picture: curr.photoURL, email: curr.email}))
             }
 
             const convoConstructor = {
@@ -184,6 +179,7 @@ io.on("connection", socket => {
                 group: true,
                 encryptionKeys: encryptionKeys, // this is an array where there is an end to end encrypted key for each user to decrypt to get the main group key
                 createdBy: user.uid,
+                admins: [user.uid],
                 createdAt: Date.now()
             }
 
@@ -219,6 +215,73 @@ io.on("connection", socket => {
             io.to(convoID).emit("receiveMessage", messageJSON)
         } catch (e) {
             console.log(`An error occured: ${e}`)
+        }
+    })
+
+    socket.on("leaveGroup", async (user, groupId) => {
+        if (!authSockets[socket.id]) return socket.emit("exception", {errMsg: "Not Authorized", requestedEvent: "leaveGroup", data: {groupId}})
+        if (authSockets[socket.id] != user.uid){
+            socket.emit("exception", {errMsg: "Authorization error"})
+            socket.disconnect()
+            return
+            // we close the connection here because someone is trying to manipulate the request
+        }
+        const cnovoRef = db.collection("Conversations")
+        const data = await cnovoRef.where("convoID", "==", groupId).get()
+
+        var dataArray = []
+        data.forEach(sample => dataArray.push(sample))
+        for (const doc of dataArray){
+            var deletedGroup = false
+            const group = doc.data()
+            // We do for loops because its valid for all object types unlike .filter() which is only valid for arrays
+            for (const index in group.searchTerms){
+                if (user.uid == group.searchTerms[index]){
+                    group.searchTerms.splice(index, 1)
+                }
+            }
+
+            for (const index in group.members){
+                const member = JSON.parse(group.members[index])
+                if (member.uid == user.uid) {
+                    console.log(group.members.splice(index, 1))
+                }
+            }
+
+            for (const index in group.admins){
+                if (group.admins[index] == user.uid) group.admins.splice(index, 1)
+            }
+
+            if (group.members.length == 0){//There are no members left, we delete the group and its messages
+                await doc.ref.delete()
+                deletedGroup = true
+                const msgData = await db.collection("Message")
+                .doc(convo.convoID).get()
+                msgData.ref.delete()
+            } else if (group.members.length != 0 && group.admins.length == 0){ // There are still members but the admins left
+                const randomMember = group.members[Math.floor(Math.random() * group.members.length)]
+                group.admins.push(JSON.parse(randomMember).uid)
+            }
+
+            if(!deletedGroup){ // if the group is not deleted then we need to save the new data
+                await cnovoRef.doc(groupId).set(group)
+
+                //now we inject the messages into the group and trigger client side update
+                const msgData = await db.collection("Message")
+                .doc(group.convoID)
+                .collection("Messages")
+                .orderBy("createdAt")
+                .get()
+                msgData.docs.forEach(msg => {
+                    msg = msg.data()
+                    if (msg) group.messages.push(msg)
+                })
+                socket.emit("deleteConvo", groupId)
+                socket.leave(groupId)
+                io.to(groupId).emit("updateConvo", group)
+            } else {
+                io.to(groupId).emit("deleteConvo", groupId)
+            }
         }
     })
 })
