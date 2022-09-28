@@ -77,7 +77,7 @@ app.get("/conversations", checkAuth, async (req, res) => {
             const curr = JSON.parse(convo.members[member])
             const user = await admin.auth().getUser(curr.uid)
             curr.name = user.displayName
-            curr.photoURL = user.photoURL
+            curr.picture = user.photoURL
             convo.members[member] = JSON.stringify(curr)
         }
         result.push(convo)
@@ -176,6 +176,7 @@ io.on("connection", socket => {
                 searchTerms: participantIds, // We need this to be able to get the document by ID (firebase doesnt support substrings)
                 members: members,
                 messages: [], // this stays as an empty array which is filled up after fetching the messages collection to be sent to the client
+                systemMessages: [],
                 group: true,
                 encryptionKeys: encryptionKeys, // this is an array where there is an end to end encrypted key for each user to decrypt to get the main group key
                 createdBy: user.uid,
@@ -244,7 +245,7 @@ io.on("connection", socket => {
             for (const index in group.members){
                 const member = JSON.parse(group.members[index])
                 if (member.uid == user.uid) {
-                    console.log(group.members.splice(index, 1))
+                    group.members.splice(index, 1)
                 }
             }
 
@@ -256,7 +257,7 @@ io.on("connection", socket => {
                 await doc.ref.delete()
                 deletedGroup = true
                 const msgData = await db.collection("Message")
-                .doc(convo.convoID).get()
+                .doc(group.convoID).get()
                 msgData.ref.delete()
             } else if (group.members.length != 0 && group.admins.length == 0){ // There are still members but the admins left
                 const randomMember = group.members[Math.floor(Math.random() * group.members.length)]
@@ -264,24 +265,137 @@ io.on("connection", socket => {
             }
 
             if(!deletedGroup){ // if the group is not deleted then we need to save the new data
+                const systemMessage = {
+                    createdAt: Date.now(),
+                    content: `${user.displayName} has left the group!`,
+                    systemMessage: true
+                }
+                group.systemMessages.push(systemMessage)
+
                 await cnovoRef.doc(groupId).set(group)
 
-                //now we inject the messages into the group and trigger client side update
-                const msgData = await db.collection("Message")
-                .doc(group.convoID)
-                .collection("Messages")
-                .orderBy("createdAt")
-                .get()
-                msgData.docs.forEach(msg => {
-                    msg = msg.data()
-                    if (msg) group.messages.push(msg)
-                })
                 socket.emit("deleteConvo", groupId)
                 socket.leave(groupId)
-                io.to(groupId).emit("updateConvo", group)
+                io.to(groupId).emit("updateConvo", group, systemMessage)
             } else {
                 io.to(groupId).emit("deleteConvo", groupId)
             }
+        }
+    })
+
+    socket.on("setGroupAdmin", async (user, groupId, target) => {
+        if (!authSockets[socket.id]) return socket.emit("exception", {errMsg: "Not Authorized", requestedEvent: "setGroupAdmin", data: {groupId: groupId, target: target}})
+        if (authSockets[socket.id] != user.uid){
+            socket.emit("exception", {errMsg: "Authorization error"})
+            socket.disconnect()
+            return
+            // we close the connection here because someone is trying to manipulate the request
+        }
+
+        const cnovoRef = db.collection("Conversations")
+        const data = await cnovoRef.where("convoID", "==", groupId).get()
+
+        var dataArray = []
+        data.forEach(sample => dataArray.push(sample)) // converting the data to an itrable object
+        for (const doc of dataArray){
+            const group = doc.data()
+            if (!group.admins.includes(user.uid) || !group.group || group.admins.includes(target)) return;
+
+            const targetUser = await admin.auth().getUser(target)
+
+            if (!targetUser) return;
+
+            group.admins.push(target)
+            const systemMessage = {
+                createdAt: Date.now(),
+                content: `${targetUser.displayName} is now an admin!`,
+                systemMessage: true
+            }
+            group.systemMessages.push(systemMessage)
+
+            cnovoRef.doc(groupId).set(group)
+            io.to(groupId).emit("updateConvo", group, systemMessage)
+        }
+    })
+
+    socket.on("kickGroupMember", async (user, groupId, target) => {
+        if (!authSockets[socket.id]) return socket.emit("exception", {errMsg: "Not Authorized", requestedEvent: "kickGroupMember", data: {groupId: groupId, target: target}})
+        if (authSockets[socket.id] != user.uid){
+            socket.emit("exception", {errMsg: "Authorization error"})
+            socket.disconnect()
+            return
+            // we close the connection here because someone is trying to manipulate the request
+        }
+
+        const cnovoRef = db.collection("Conversations")
+        const data = await cnovoRef.where("convoID", "==", groupId).get()
+
+        var dataArray = []
+        data.forEach(sample => dataArray.push(sample)) // converting the data to an itrable object
+        for (const doc of dataArray){
+            const group = doc.data()
+            if (!group.admins.includes(user.uid) || !group.group) return;
+            const targetUser = await admin.auth().getUser(target)
+
+            if (!targetUser) return;
+
+            for (const index in group.searchTerms){
+                if (targetUser.uid == group.searchTerms[index]){
+                    group.searchTerms.splice(index, 1)
+                }
+            }
+
+            for (const index in group.members){
+                const member = JSON.parse(group.members[index])
+                if (member.uid == targetUser.uid) {
+                    group.members.splice(index, 1)
+                }
+            }
+            const systemMessage = {
+                createdAt: Date.now(),
+                content: `${targetUser.displayName} has been kicked out!`,
+                systemMessage: true
+            }
+            group.systemMessages.push(systemMessage)
+            await cnovoRef.doc(groupId).set(group)
+            socketAuths[targetUser.uid]?.leave(groupId)
+            socketAuths[targetUser.uid]?.emit("deleteConvo", groupId)
+            io.to(groupId).emit("updateConvo", group, systemMessage)
+        }
+    })
+
+    socket.on("editGroup", async (user, groupId, newInfo) => {
+        if (!authSockets[socket.id]) return socket.emit("exception", {errMsg: "Not Authorized", requestedEvent: "editGroup", data: {groupId: groupId, newInfo: newInfo}})
+        if (authSockets[socket.id] != user.uid){
+            socket.emit("exception", {errMsg: "Authorization error"})
+            socket.disconnect()
+            return
+            // we close the connection here because someone is trying to manipulate the request
+        }
+
+        const cnovoRef = db.collection("Conversations")
+        const data = await cnovoRef.where("convoID", "==", groupId).get()
+
+        var dataArray = []
+        data.forEach(sample => dataArray.push(sample)) // converting the data to an itrable object
+        for (const doc of dataArray){
+            const group = doc.data()
+            if (!group.admins.includes(user.uid) || !group.group) return;
+            const urlRegex = /(https?:\/\/[^\s]+)/;
+            if (newInfo.imgUrl && urlRegex.test(newInfo.imgUrl)){
+                group.picture = newInfo.imgUrl
+            }
+            if (newInfo.name.trim()){
+                group.name = newInfo.name
+            }
+            const systemMessage = {
+                createdAt: Date.now(),
+                content: `${user.displayName} updated the group info!`,
+                systemMessage: true
+            }
+            group.systemMessages.push(systemMessage)
+            await cnovoRef.doc(groupId).set(group)
+            io.to(groupId).emit("updateConvo", group, systemMessage)
         }
     })
 })

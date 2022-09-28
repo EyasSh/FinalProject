@@ -101,6 +101,14 @@
   p[class^="from-"].emoji::before {
     content: none;
   }
+
+  p.systemMessage{
+    left: 50%;
+    text-align: center;
+    transform: translate(-50%);
+    width: fit-content;
+    background-color: rgba(0, 0, 0, 0.163);
+  }
   
   .no-tail::before {
     display: none;

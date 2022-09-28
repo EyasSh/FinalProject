@@ -2,7 +2,7 @@ import {React, useRef, useState} from 'react';
 import * as Joi from "joi"
 import { uploadFile } from '../Services/misc';
 import Spinner from "../Spinner/Spinner"
-import { decryptText, deriveKey, encryptText, generateKeyPair } from '../Services/E2E';
+import { deriveKey, encryptText, generateKeyPair } from '../Services/E2E';
 
 //css
 import "./Modal.css"
@@ -10,17 +10,20 @@ import "./Modal.css"
 //assets
 import {SearchOutlined} from '@ant-design/icons';
 import defaultPNG from "../Assets/Images/default.png"
+import gDefaultPng from "../Assets/Images/groupDefault.png"
+
 
 //firebase
 import { firebaseApp } from "../DB/FireBaseConf";
 import {getAuth, updateProfile} from "firebase/auth"
+import { useEffect } from 'react';
 
 
 function Modal(props) {
     // new convo modal states
     const [checkedContacts, setCheckedContacts] = useState([])
     const [newConvoSearch, setNewConvoSearch] = useState("")
-    const [contactList, setcontactList] = useState([])
+    const [contactList, setcontactList] = useState(props.contacts)
     const [publicKeys, setPublicKeys] = useState([])
 
     // edit profile modal states
@@ -35,6 +38,12 @@ function Modal(props) {
     const selectedImage = useRef()
     const [selectedFile, setSelectedFile] = useState(null)
     const [uploading, setUploading] = useState(false)
+
+    //group info modal states
+    const giPrev = useRef()
+    const giFile = useRef()
+    const [groupNameInput, setGroupNameInput] = useState(props.convo?.name)
+    const [giPhoto, setGiPhoto] = useState(gDefaultPng)
 
     const server = props.server
 
@@ -70,20 +79,11 @@ function Modal(props) {
     const updateExistingConvos = () =>{
         var matchSearch = []
         var uniqueIDs = []
-        props.chats.forEach(chat => {
-            if (chat.recepientEmail) {
-                server.get(`users?email=${chat.recepientEmail}`)
-                .then((res) => {
-                    if (res.status != 200) return
-                    setcontactList([...contactList, res.data])
-                })
-            }
-        })
         contactList.forEach(data => {
             const user = data.user
             if (!publicKeys[user.uid]){
                 var newPubKeys = publicKeys
-                newPubKeys[user.uid] = data.publicKey
+                newPubKeys[user.uid] = data.publicKey ? data.publicKey : user.publicKey
                 setPublicKeys(newPubKeys)    
             }
             if (user.displayName.toLowerCase().includes(newConvoSearch.toLowerCase()) || user.email.toLowerCase().includes(newConvoSearch.toLowerCase()) || isUserChecked(user)){
@@ -131,8 +131,6 @@ function Modal(props) {
                 encryptedKey: selfEncryptedKey,
                 publicKey: props.keyData.keyPair.publicKeyJwk
             }
-            console.log(rawKey, groupKeys[Auth.currentUser.uid].encryptedKey, selfDerived)
-            console.log(await decryptText(groupKeys[Auth.currentUser.uid].encryptedKey, selfDerived))
             // loop through the selected contacts and add their keys
             for (const contact in checkedContacts) {
                 const resPubKey = publicKeys[JSON.parse(checkedContacts[contact]).uid]
@@ -141,7 +139,6 @@ function Modal(props) {
                     publicKey: props.keyData.keyPair.publicKeyJwk
                 }
             }
-            console.log(groupKeys)
             props.socket.emit("createConvo", Auth.currentUser, checkedContacts, JSON.stringify(groupKeys))
         }
         closeModal()
@@ -193,7 +190,7 @@ function Modal(props) {
 
     // TODO: Move this function to a util folder and only return the download link
     const updateProfPic = src => {
-        uploadFile(src, `profilePics/${Auth.currentUser.uid}`)
+        uploadFile(src, `profilePics/${Auth.currentUser.uid}`, true)
         .then(url => {
             props.setProfPic(url)
             updateProfile(Auth.currentUser, {
@@ -229,7 +226,7 @@ function Modal(props) {
         e.preventDefault()
         if (selectedFile) {
             setUploading(true)
-            uploadFile(selectedFile, `chatFiles/${props.convo.convoID}`)
+            uploadFile(selectedFile, `chatFiles/${props.convo.convoID}`, true)
             .then(async url => {
                 closeModal()
                 var txtMsg = fileTextFeild.trim() ? fileTextFeild : ""
@@ -251,6 +248,78 @@ function Modal(props) {
                 setUploading(false)
             })
         }
+    }
+
+    const setAdmin = (e) => {
+        props.socket.emit("setGroupAdmin", props.Auth.currentUser, props.convo.convoID, e.target.value)
+    }
+
+    const kickMember = (e) => {
+        props.socket.emit("kickGroupMember", props.Auth.currentUser, props.convo.convoID, e.target.value)
+    }
+
+    const handleGroupNameInputChange = (e) => {
+        setGroupNameInput(e.target.value)
+    }
+
+    const handleGroupInfoImage = (e) => {
+        if (!e.target.files[0]) return
+        if (!props.allowedImgTypes.includes(e.target.files[0].type)){
+            e.target.files = []
+            return alert("Unsupported type")
+        }
+        var reader = new FileReader()
+        reader.onload = function(e) {
+            giPrev.current.src = e.target.result
+            setGiPhoto(e.target.result)
+        }
+        reader.readAsDataURL(e.target.files[0])
+    }
+
+    const saveGiModal = async (e) => {
+        const file = giFile.current?.files[0]
+        var imgUrl = null
+        setUploading(true)
+        if (file && props.allowedImgTypes.includes(file.type)){
+            imgUrl = await uploadFile(file, `groupImages/${props.convo.convoID}`, true)
+        }
+        if (groupNameInput.trim()){
+            props.socket.emit("editGroup", props.Auth.currentUser, props.convo.convoID, {
+                imgUrl: imgUrl,
+                name: groupNameInput
+            })
+        }
+        setUploading(false)
+        closeModal()
+    }
+
+    const getMembersJSX = () => {
+        const rtval = []
+        props.convo.members.forEach((member) => {
+            member = JSON.parse(member)
+            rtval.push(
+                <div className="groupMember">
+                    <img src={member.picture?? defaultPNG} alt="" className="giPhoto" />
+                    <div className="memberData">
+                        <span className="memberName">{member.name}</span>
+                        <br></br>
+                        <span className="memberEmail">{member.email}</span>
+                    </div>
+                    {props.isConvoAdmin ?
+                        <div className="memberControls">
+                            {!props.convo.admins.includes(member.uid) ? 
+                             <>
+                                <button onClick={setAdmin} value={member.uid} className='setAdmin'>Set Admin</button>
+                                <button onClick={kickMember} value={member.uid} className='kickMember'>Kick</button>
+                             </> : "Admin"
+                            }
+                        </div>
+                        : ""
+                    }
+                </div>
+            )
+        })
+        return rtval
     }
 
     // Modal types
@@ -336,6 +405,34 @@ function Modal(props) {
                     </div>
                 </div>
             }
+            </>
+        ) : null,
+
+        "groupInfo": props.modalOpen == "groupInfo" ? (
+            <>
+                {uploading ? <Spinner /> : 
+                    <>
+                        <div className="modal" style={{
+                            width: "500px",
+                            height: "300px"                
+                        }}>
+                            <span className="exitBtn" onClick={closeModal}>x</span>
+                            <h3 className='sfTitle'>{props.convo.name} Info</h3>
+                            <input onChange={handleGroupInfoImage} ref={giFile} disabled={!props.isConvoAdmin} type="file" accept='image/png, image/jpg, image/jpeg' style={{display: "none"}} />
+                            <div className="mainInfo">
+                                <img onClick={() => giFile.current?.click()} ref={giPrev} src={props.convo.picture} style={props.isConvoAdmin ? {cursor: "pointer"} : {}} alt="" className="giPhoto" />
+                                <input maxLength="20" placeholder='Enter a desired name...' onChange={handleGroupNameInputChange} className='giNameFeild' type="text" defaultValue={props.convo.name} disabled={!props.isConvoAdmin} />
+                            </div>
+                            <div className="groupMembers">
+                                {getMembersJSX()}
+                            </div>
+                            <div className="giBtns">
+                                <button onClick={closeModal} className="closeGroupInfo">Close</button>
+                                <button onClick={saveGiModal} disabled={(groupNameInput == props.convo.name || !groupNameInput.trim()) && giPhoto == props.convo.picture} className="saveGroupInfo">Save</button>
+                            </div>
+                        </div>
+                    </>
+                }
             </>
         ) : null
     }

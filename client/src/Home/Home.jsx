@@ -79,8 +79,14 @@ function Home(props) {
                     unique = false
                 }
             })
-            if (unique)
-                setChats([...chats, convo]) // this is how you push to a state that is an array
+            if (unique) setChats([...chats, convo]); // this is how you push to a state that is an array
+            chats.map(chat => {
+                chat.messages.map(msg => {
+                    if (msg.sender == Auth.currentUser.uid){
+                        msg.fromMe = true
+                    }
+                })
+            })
         })
 
         socket.on("receiveMessage", async (messageJson) => {
@@ -100,6 +106,48 @@ function Home(props) {
             const newChats = [...chats]
             newChats[index] = convo
             setChats(newChats)
+        })
+
+        socket.on("deleteConvo", convoId => {
+            for (const chat in chats) {
+                const curr = chats[chat]
+                if (curr.convoID == convoId){
+                    chats.splice(chat, 1)
+                    if (activeConvo == convoId){
+                        setActiveConvo(null)
+                    }
+                    setChats(chats)
+                }
+            }
+        })
+
+        socket.on("updateConvo", (convo, msg) => {
+            for (const chat in chats){
+                if (convo.convoID == chats[chat].convoID){
+                    // we can't just do chats[chat] = convo, because that will ruin the message decryption
+                    chats[chat].members = convo.members
+                    chats[chat].admins = convo.admins
+                    chats[chat].searchTerms = convo.searchTerms
+                    chats[chat].name = convo.name
+                    chats[chat].encryptionKeys = convo.encryptionKeys
+                    if (convo.group){
+                        chats[chat].picture = convo.picture ?? gDefaultPng
+                    } else {
+                        chats[chat].picture = convo.picture ?? defaultPNG
+                    }
+                    chats[chat].systemMessages.push(msg)
+                    // we use the spread operator in order to change the reference and rerender the component
+                    // https://stackoverflow.com/questions/71185474/component-not-re-rendering-after-change-in-an-array-state-in-react
+                    setChats([...chats])
+                    chats.map(chat => {
+                        chat.messages.map(msg => {
+                            if (msg.sender == Auth.currentUser.uid){
+                                msg.fromMe = true
+                            }
+                        })
+                    })
+                }
+            }
         })
 
         if (isLoading && authenticated){
@@ -167,7 +215,9 @@ function Home(props) {
                             groupKeys = JSON.parse(groupKeys)
                             convo.derivedKey = await E2E.deriveKey(groupKeys.publicKey, groupKeys.privateKey)
                         }
-                        convo.messages.forEach(async (msg, msgIndex) => {
+
+                        for (const msgIndex in convo.messages){
+                            const msg = convo.messages[msgIndex]
                             const message = {
                                 group: convo.group,
                                 name: msg.name,
@@ -178,7 +228,7 @@ function Home(props) {
                                 sender: msg.sentBy
                             }
                             convo.messages[msgIndex] = message
-                        })
+                        }
 
                         // Check for duplicates
                         var unique = true
@@ -190,7 +240,14 @@ function Home(props) {
                         if (unique)
                             proccessedChats = [...proccessedChats, convo] // this is how you push to a state that is an array
                     }
-                    setChats(proccessedChats)
+                    setChats([...proccessedChats])
+                    chats.map(chat => {
+                        chat.messages.map(msg => {
+                            if (msg.sender == Auth.currentUser.uid){
+                                msg.fromMe = true
+                            }
+                        })
+                    })
                     setIsLoading(false)
                 }).catch(e => {
                     console.log(e)
@@ -201,17 +258,12 @@ function Home(props) {
             props.setKeyData(newKeyData)
         }
         return () => {
+            // That's a cleanup function so that the events don't register multiple times
             socket.off("createConvo")
             socket.off("receiveMessage")
+            socket.off("deleteConvo")
+            socket.off("updateConvo")
         }
-    })
-
-    chats.map(chat => {
-        chat.messages.map(msg => {
-            if (msg.sender == Auth.currentUser.uid){
-                msg.fromMe = true
-            }
-        })
     })
 
     const [activeConvo, setActiveConvo] = useState(null)

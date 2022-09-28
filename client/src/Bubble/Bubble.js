@@ -16,8 +16,12 @@ function Bubble(props) {
     useEffect(() => {
         scrollToBottom()
     })
-
-    activeChat.messages.forEach( msg => {
+    const allMessages = [...activeChat.messages, ...activeChat.systemMessages]
+    allMessages.sort((a, b) => {
+        if (a.createdAt > b.createdAt) return 1;
+        return -1
+    })
+    allMessages.forEach( msg => {
         if (typeof msg.attatchment == "string"){
             msg.attatchment = isJSON(msg.attatchment)
         }
@@ -28,12 +32,20 @@ function Bubble(props) {
         const isVoiceUrl = urlRegex.test(msg.voice?.url)
         if (!isURL){
             if (!isVoiceUrl){
-                messagesJSX.push(
-                    <p key={msg.createdAt} className={msg.fromMe ? "from-me" : "from-them"}>
-                        {msg.group ?<><span className='messageName'>{msg.name}</span> <br></br></> : ""}
-                        {msg.content}
-                    </p>
-                )
+                if(msg.systemMessage) {
+                    messagesJSX.push(
+                        <p className='systemMessage'>
+                            {msg.content}
+                        </p>
+                    )
+                } else {
+                    messagesJSX.push(
+                        <p key={msg.createdAt} className={msg.fromMe ? "from-me" : "from-them"}>
+                            {msg.group ?<><span className='messageName'>{msg.name}</span> <br></br></> : ""}
+                            {msg.content}
+                        </p>
+                    )
+                }
             } else {
                 messagesJSX.push(
                     <p key={msg.createdAt} className={msg.fromMe ? "from-me" : "from-them"}>

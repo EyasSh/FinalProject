@@ -22,6 +22,7 @@
     padding: 10px;
     z-index: 100;
     box-shadow: 0px 0px 26px 0px #000000;
+    overflow-y: scroll;
 }
 
 .exitBtn {
@@ -54,9 +55,11 @@
 }
 
 .convoModalSearchBar,
-.fileTextFeild {
+.fileTextFeild,
+.giNameFeild {
     font-size: 17px;
     width: 70%;
+    height: fit-content;
     padding: 5px;
     outline: none;
     border: none;
@@ -67,7 +70,9 @@
 .convoModalSearchBar:hover,
 .convoModalSearchBar:focus,
 .fileTextFeild:hover,
-.fileTextFeild:focus {
+.fileTextFeild:focus,
+.giNameFeild:hover,
+.giNameFeild:focus {
     border-bottom: 2px solid #1a5ea1;
 }
 
@@ -83,11 +88,13 @@
     margin-right: 20px
 }
 
-.contactItemName {
+.contactItemName,
+.memberName {
     margin-right: 5px;
 }
 
-.contactItemId {
+.contactItemId,
+.memberEmail {
     font-size: 15px;
     color: gray;
 }
@@ -218,4 +225,100 @@
     margin-top: 10px;
     max-width: 300px;
     max-height: 250px;
+}
+
+.mainInfo{
+    display: flex;
+    align-items: center;
+}
+
+.giPhoto {
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    margin: 0px 10px;
+    object-fit: cover;
+}
+
+.groupMember{
+    display: flex;
+    align-items: center;
+    margin: 10px 0px;
+    width: 100%;
+}
+
+.memberControls {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    right: 20px;
+}
+
+.memberControls button{
+    cursor: pointer;
+    margin-bottom: 3px;
+    border-radius: 5px;
+    background-color: transparent;
+    transition: all 200ms;
+}
+
+.setAdmin{
+    border: 2px solid #248bf5;
+}
+
+.setAdmin:hover{
+    color: white;
+    background-color: #248bf5;
+}
+
+.kickMember {
+    border: 2px solid red;
+}
+
+.kickMember:hover{
+    color: white;
+    background-color: red;
+}
+
+.giBtns{
+    position: absolute;
+    right: 10px;
+    bottom: 5px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    width: 30%;
+}
+
+.giBtns button {
+    width: fit-content;
+    transition: all 200ms;
+    outline: none;
+    background-color: transparent;
+    font-size: 17px;
+}
+
+.closeGroupInfo {
+    border: 2px solid red;
+    border-radius: 5px;
+}
+
+.closeGroupInfo:hover {
+    background-color: red;
+    color: white;
+}
+
+.saveGroupInfo {
+    border: 2px solid #248bf5;
+    border-radius: 5px;
+}
+
+.saveGroupInfo:hover{
+    background-color: #248bf5;
+    color: white;
+}
+
+.saveGroupInfo:disabled{
+    pointer-events: none;
 }

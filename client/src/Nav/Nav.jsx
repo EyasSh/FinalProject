@@ -39,7 +39,9 @@ export default function Nav(props) {
     // Get the chats and render all of the ones that match the search
     const chatsJSX = []
     const chats = props.chats.sort((a, b) => { // we need to sort the array by the last message created at
-        if(b.messages[b.messages.length -1]?.createdAt > a.messages[a.messages.length -1]?.createdAt || !b.messages[b.messages.length -1]){
+        const aTime = a.messages[a.messages.length-1]?.createdAt?? a?.createdAt
+        const bTime = b.messages[b.messages.length-1]?.createdAt?? b?.createdAt
+        if(bTime > aTime){
             return 1 // larger than 0 means sort a after b
         } else {
             return -1
@@ -156,6 +158,20 @@ export default function Nav(props) {
         }
     }
 
+    const getContacts = () => {
+        var contactList = []
+        for (const chat of chats){
+            for (const member of chat.members){
+                const curr = JSON.parse(member)
+                if (curr.uid != Auth.currentUser.uid){
+                    curr.displayName = curr.name
+                    contactList.push({user: curr})
+                }
+            }
+        }
+        return contactList
+    }
+
     return (
       <div className='Nav'>
         <img src={profPic} alt="" className="profileBtn" onClick={openProfile} />
@@ -186,7 +202,7 @@ export default function Nav(props) {
         </div>
 
         {/* Prompts */}
-        {modalOpen ? <Modal keyData={props.keyData} allowedImgTypes={props.allowedImgTypes} socket={props.socket} server={props.server} setProfPic={setProfPic} profPic={profPic} modalOpen={modalOpen} setModalOpen={setModalOpen} chats={chats} /> : ""}
+        {modalOpen ? <Modal contacts={getContacts()} keyData={props.keyData} allowedImgTypes={props.allowedImgTypes} socket={props.socket} server={props.server} setProfPic={setProfPic} profPic={profPic} modalOpen={modalOpen} setModalOpen={setModalOpen} chats={chats} /> : ""}
       </div>
     );
 }

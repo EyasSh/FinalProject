@@ -22,19 +22,25 @@ function Convo(props) {
         setMessageFeild(e.target.value)
     }
 
-    const toggleUserProfile = toggle => {
+    const toggleHeaderExpantion = toggle => {
+        if (!props.activeConvo.group && toggle) return
         const header = document.querySelector(".convoHeader")
         const pic = document.querySelector(".convoPicture")
         const name = document.querySelector(".convoName")
+        const groupControlBtns = document.querySelector(".groupControlBtns")
+        const groupInfo = document.querySelector(".groupInfo")
+        const leaveGroup = document.querySelector(".leaveGroup")
         
         if (toggle){
-            header.classList.add("headerEnlarged")
-            pic.classList.add("picEnlarged")
-            name.classList.add("profileTitle")
+            header?.classList.add("headerEnlarged")
+            pic?.classList.add("picEnlarged")
+            name?.classList.add("profileTitle")
+            groupControlBtns?.classList.add("gBtnsEnabled")
         } else {
-            header.classList.remove("open")
-            pic.classList.remove("enlarged")
-            name.classList.remove("profileTitle")
+            header?.classList.remove("headerEnlarged")
+            pic?.classList.remove("picEnlarged")
+            name?.classList.remove("profileTitle")
+            groupControlBtns?.classList.remove("gBtnsEnabled")
         }
     }
 
@@ -99,7 +105,6 @@ function Convo(props) {
         if (msgFeild.trim == "") return
         msgBox.current.value = ""
         setMessageFeild("")
-        console.log(props.activeConvo.derivedKey)
         const encryptedText = await E2E.encryptText(msgFeild, props.activeConvo.derivedKey)
         props.socket.emit("sendMessage", props.Auth.currentUser, encryptedText, props.activeConvo.convoID)
     }
@@ -122,15 +127,34 @@ function Convo(props) {
         setMessageFeild("")
     }
 
+    const leaveGroup = () => {
+        if (props.activeConvo.group){
+            props.socket.emit("leaveGroup", props.Auth.currentUser, props.activeConvo.convoID)
+        }
+    }
+
+    const amIAdmin = () => {
+        if(props.activeConvo?.admins?.includes(props.Auth.currentUser.uid)){
+            return true
+        }
+        return false
+        // There is also another check on the backend
+    }
+
     return (
         <div className='convoSection'>
-            {props.activeConvo ? 
+            {props.activeConvo ?
                 <>
+                    {toggleHeaderExpantion(false)}
                     <div className="convoHeader">
-                        <img src={props.activeConvo.picture} alt="" className="convoPicture" /><span className="convoName" onClick={() => toggleUserProfile(true)}>{props.activeConvo.name}</span>
+                        <img src={props.activeConvo.picture} alt="" className="convoPicture" /><span className="convoName" onClick={() => toggleHeaderExpantion(true)}>{props.activeConvo.name}</span>
                         <div className="convoHeaderBtns">
                             <span id="voiceCallBtn"><PhoneFilled /></span>
                             <span id="videoCallBtn"><VideoCameraFilled /></span>
+                        </div>
+                        <div className="groupControlBtns">
+                            <button className="groupInfo" onClick={() => setModalOpen("groupInfo")}>Group Info</button>
+                            <button className="leaveGroup" onClick={leaveGroup}>Leave Group</button>
                         </div>
                     </div>
                     <div className="bubblesWrapper">
@@ -138,7 +162,7 @@ function Convo(props) {
                             props.activeConvo ? 
                             <>
                                 <Bubble allowedImgTypes={props.allowedImgTypes} activeChat={props.activeConvo}/>
-                                {modalOpen ? <Modal allowedImgTypes={props.allowedImgTypes} socket={props.socket} Auth={props.Auth} modalOpen={modalOpen} setModalOpen={setModalOpen} convo={props.activeConvo}/> : ""}
+                                {modalOpen ? <Modal isConvoAdmin={amIAdmin()} allowedImgTypes={props.allowedImgTypes} socket={props.socket} Auth={props.Auth} modalOpen={modalOpen} setModalOpen={setModalOpen} convo={props.activeConvo}/> : ""}
                             </>
                             :
                             <div className="noConvoSelected">
