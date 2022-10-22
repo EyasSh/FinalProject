@@ -5,6 +5,9 @@ import "./Bubble.css"
 function Bubble(props) {
 
     const activeChat = props.activeChat
+    if (!activeChat.systemMessages){
+        activeChat.systemMessages = []
+    }
     const bottomRef = useRef()
     const messagesJSX = []
     const urlRegex = /(https?:\/\/[^\s]+)/;
