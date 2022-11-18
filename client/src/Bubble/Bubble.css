@@ -122,3 +122,15 @@
     font-weight: bold;
     text-decoration: underline;
   }
+
+  .fileAttatchment{
+    border: none;
+    outline: none;
+    color: #248bf5;
+    background-color: transparent;
+    font-size: 20px;
+  }
+
+  .fileAttatchment:hover{
+    text-decoration: underline;
+  }

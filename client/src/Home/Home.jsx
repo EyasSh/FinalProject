@@ -79,14 +79,8 @@ function Home(props) {
                     unique = false
                 }
             })
+
             if (unique) setChats([...chats, convo]); // this is how you push to a state that is an array
-            chats.map(chat => {
-                chat.messages.map(msg => {
-                    if (msg.sender == Auth.currentUser.uid){
-                        msg.fromMe = true
-                    }
-                })
-            })
         })
 
         socket.on("receiveMessage", async (messageJson) => {
@@ -100,6 +94,7 @@ function Home(props) {
                 voice: await E2E.decryptText(messageJson.voice, chats[index].derivedKey),
                 sender: messageJson.sentBy
             }
+            message.fromMe = message.sender == Auth.currentUser.uid 
             const convo = chats[index]
             if (convo.group) message.group = true;
             convo.messages.push(message)
@@ -139,13 +134,6 @@ function Home(props) {
                     // we use the spread operator in order to change the reference and rerender the component
                     // https://stackoverflow.com/questions/71185474/component-not-re-rendering-after-change-in-an-array-state-in-react
                     setChats([...chats])
-                    chats.map(chat => {
-                        chat.messages.map(msg => {
-                            if (msg.sender == Auth.currentUser.uid){
-                                msg.fromMe = true
-                            }
-                        })
-                    })
                 }
             }
         })
@@ -227,6 +215,8 @@ function Home(props) {
                                 voice: await E2E.decryptText(msg.voice, convo.derivedKey),
                                 sender: msg.sentBy
                             }
+                            console.log(message.sender == Auth.currentUser.uid)
+                            message.fromMe = message.sender == Auth.currentUser.uid
                             convo.messages[msgIndex] = message
                         }
 
@@ -241,13 +231,6 @@ function Home(props) {
                             proccessedChats = [...proccessedChats, convo] // this is how you push to a state that is an array
                     }
                     setChats([...proccessedChats])
-                    chats.map(chat => {
-                        chat.messages.map(msg => {
-                            if (msg.sender == Auth.currentUser.uid){
-                                msg.fromMe = true
-                            }
-                        })
-                    })
                     setIsLoading(false)
                 }).catch(e => {
                     console.log(e)

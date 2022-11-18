@@ -19,6 +19,19 @@ function Bubble(props) {
     useEffect(() => {
         scrollToBottom()
     })
+
+    const coverntFiletoBlobAndDownload = async (file, name) => {
+        const blob = await fetch(file).then(r => r.blob())
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.style.display = 'none'
+        a.href = url
+        a.download = name // add custom extension here
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+    }
+
     const allMessages = [...activeChat.messages, ...activeChat.systemMessages]
     allMessages.sort((a, b) => {
         if (a.createdAt > b.createdAt) return 1;
@@ -71,7 +84,7 @@ function Bubble(props) {
             messagesJSX.push(
                 <p key={msg.createdAt} className={msg.fromMe ? "from-me" : "from-them"}>
                     {msg.group ?<><span className='messageName'>{msg.name}</span> <br></br></> : ""}
-                    File: <a href={msg.attatchment.url}>{msg.attatchment.data?.name}</a>
+                    File: <button className='fileAttatchment' onClick={() => coverntFiletoBlobAndDownload(msg.attatchment.url, msg.attatchment.data?.name)}>{msg.attatchment.data?.name}</button>
                     <br></br>
                     <hr></hr>
                     {msg.content}
