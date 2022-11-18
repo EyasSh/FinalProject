@@ -34,7 +34,6 @@ function SignUp(props) {
         // Listen for an Enter key press as an alternative for the sign up button
         const keyDownHandler = event => {    
           if (event.key === 'Enter') {
-            event.preventDefault();
             handleSubmit()
           }
         };
@@ -44,7 +43,7 @@ function SignUp(props) {
           document.removeEventListener('keydown', keyDownHandler); // cleanup
           cleanup()
         };
-      }, []);
+      });
 
     const handleSubmit=async ()=>{
         setErrMsg("") // reset the error message

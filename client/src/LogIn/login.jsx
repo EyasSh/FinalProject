@@ -35,9 +35,8 @@ function Login(props){
         //Listen for Enter key as an alternative to the Login button click
         const keyDownHandler = event => {    
           if (event.key === 'Enter') {
-            event.preventDefault();
             handleLogin()
-          }
+          } 
         };
         document.addEventListener('keydown', keyDownHandler);
     
@@ -45,7 +44,7 @@ function Login(props){
             //cleanup the listener on component unmount
           document.removeEventListener('keydown', keyDownHandler); // cleanup
         };
-      }, []);
+      });
 
     function handleLogin(){     
         setErrMsg(null) // resets the error message
